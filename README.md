@@ -2,5 +2,7 @@
 
 ## Usage
 
-`import flffc`
-`flffc.run(country = "Denmark")`
+```python
+import flffc
+flffc.run(country = "Denmark")
+```
