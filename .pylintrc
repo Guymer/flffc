@@ -1,0 +1,2 @@
+[MESSAGES CONTROL]
+disable=bad-whitespace,line-too-long,missing-docstring,too-many-locals
