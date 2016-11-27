@@ -25,7 +25,7 @@ FLFFC requires the following Python modules to be installed and available in you
 
 * cartopy
 * numpy
-* math
+* math (standard Python library)
 * matplotlib
 * shapely
 
