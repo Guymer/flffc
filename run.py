@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-def run(country = "United Kingdom"):
+def run(country = "United Kingdom", steps = 50):
     # Import modules ...
     import cartopy.crs
     import cartopy.io.shapereader
@@ -51,8 +51,8 @@ def run(country = "United Kingdom"):
         )
 
         # Make longitude and latitude grid ...
-        xcoords = numpy.linspace(lon_min, lon_max)
-        ycoords = numpy.linspace(lat_min, lat_max)
+        xcoords = numpy.linspace(lon_min, lon_max, num = steps)
+        ycoords = numpy.linspace(lat_min, lat_max, num = steps)
 
         # Make empty lists of points ...
         xpoints = []
@@ -98,9 +98,18 @@ def run(country = "United Kingdom"):
         print "The furthest you can get from the coast is ~{0:.1f} km.".format(max(zpoints))
 
         # Plot points ...
+        # NOTE: Default value of the optional keyword argument "s" (as of
+        #       November 2016) is "20 points ^ 2". Therefore, the nominal width/
+        #       height is approximately "4.5 points" (assuming that the circles
+        #       are actually sized like squares). I want to scale the width/
+        #       height so that the circles do not overlap. The following tweak
+        #       should do that as different users request different numbers of
+        #       steps. With the default value of "steps = 50" the size will be
+        #       "16 points ^ 2" - a slightly smaller area than default.
         matplotlib.pyplot.scatter(
             xpoints,
             ypoints,
+            s = (200 / steps) ** 2,
             c = zpoints,
             alpha = 0.5,
             linewidth = 0.5,

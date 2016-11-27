@@ -8,14 +8,14 @@ FLFFC can be run very easily, below is a minimum working example.
 
 ```python
 import flffc
-flffc.run(country = "Denmark")
+flffc.run(country = "Denmark", steps = 100)
 ```
 
-If `country` is not specified it defaults to "United Kingdom".
+If `country` is not specified it defaults to "United Kingdom". If `steps` is not specified it defaults to "50".
 
 ## Example Output
 
-The last line of the output from FLFFC will tell you how far you can (roughly) get from the coast in your chosen country. For the United Kingdom the line is "The furthest you can get from the coast is ~101.5 km". FLFFC will also create a PNG in your current directory named after your chosen country showing where that location is. Below is the result for the United Kingdom.
+The last line of the output from FLFFC will tell you how far you can (roughly) get from the coast in your chosen country. For the United Kingdom (with 50 steps) the line is "The furthest you can get from the coast is ~101.5 km". FLFFC will also create a PNG in your current directory named after your chosen country showing where that location is. Below is the result for the United Kingdom.
 
 ![FLFFC output for the United Kingdom](United Kingdom.png)
 
