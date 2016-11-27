@@ -30,7 +30,7 @@ def run(country = "United Kingdom", steps = 50):
 
         # Create plot and make it pretty ...
         fig = matplotlib.pyplot.figure(
-            figsize = (6, 6),
+            figsize = (9, 6),
             dpi = 300,
             frameon = False
         )
@@ -106,7 +106,7 @@ def run(country = "United Kingdom", steps = 50):
         #       should do that as different users request different numbers of
         #       steps. With the default value of "steps = 50" the size will be
         #       "16 points ^ 2" - a slightly smaller area than default.
-        matplotlib.pyplot.scatter(
+        sc = matplotlib.pyplot.scatter(
             xpoints,
             ypoints,
             s = (200 / steps) ** 2,
@@ -118,8 +118,12 @@ def run(country = "United Kingdom", steps = 50):
             transform = cartopy.crs.Geodetic()
         )
 
+        # Add colour bar ...
+        cb = matplotlib.pyplot.colorbar(sc)
+        cb.set_label("Distance [km]")
+
         # Save map as PNG ...
-        matplotlib.pyplot.title("Distance From Coast")
+        matplotlib.pyplot.title("Location Furthest From Coast")
         matplotlib.pyplot.savefig(
             "{0:s}.png".format(country),
             dpi = 300,
