@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
 
-def run(country = "United Kingdom", steps = 50):
+def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
     # Import modules ...
+    import cartopy
     import cartopy.crs
+    import cartopy.io
     import cartopy.io.shapereader
     import numpy
+    import matplotlib
     import matplotlib.pyplot
+    import shapely
     import shapely.geometry
 
     # Load sub-functions ...
     from .dist_between_two_locs import dist_between_two_locs
+
+    # Make output directory ...
+    if not os.path.exists(dirOut):
+        os.makedirs(dirOut)
 
     # Find file containing all the country shapes ...
     shape_file = cartopy.io.shapereader.natural_earth(
@@ -125,7 +133,7 @@ def run(country = "United Kingdom", steps = 50):
         # Save map as PNG ...
         matplotlib.pyplot.title("Location Furthest From Coast")
         matplotlib.pyplot.savefig(
-            "{0:s}.png".format(country),
+            os.path.join(dirOut, "{0:s}.png".format(country)),
             dpi = 300,
             bbox_inches = "tight",
             pad_inches = 0.1
