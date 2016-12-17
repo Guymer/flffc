@@ -24,9 +24,8 @@ The last line of the output from FLFFC will tell you how far you can (roughly) g
 FLFFC requires the following Python modules to be installed and available in your `PYTHONPATH`.
 
 * cartopy
-* numpy
-* math (standard Python library)
 * matplotlib
+* numpy
 * shapely
 
 FLFFC uses some [Natural Earth](http://www.naturalearthdata.com/) resources via the [Cartopy](http://scitools.org.uk/cartopy/) module. If they do not exist on your system then Cartopy will download them for you in the background. Consequently, a working internet connection may be required the first time you run FLFFC.
