@@ -8,10 +8,10 @@ FLFFC can be run very easily, below is a minimum working example.
 
 ```python
 import flffc
-flffc.run(country = "Denmark", steps = 100)
+flffc.run(dirOut = "myOutput", country = "Denmark", steps = 100)
 ```
 
-If `country` is not specified it defaults to "United Kingdom". If `steps` is not specified it defaults to "50".
+If `country` is not specified it defaults to "United Kingdom". If `steps` is not specified it defaults to "50". If `dirOut` is not specified it defaults to "FLFFCoutput".
 
 ## Example Output
 
