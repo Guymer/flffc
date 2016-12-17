@@ -6,9 +6,10 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
     import cartopy.crs
     import cartopy.io
     import cartopy.io.shapereader
-    import numpy
     import matplotlib
     import matplotlib.pyplot
+    import numpy
+    import os
     import shapely
     import shapely.geometry
 
@@ -121,7 +122,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
             c = zpoints,
             alpha = 0.5,
             linewidth = 0.5,
-            cmap = matplotlib.pyplot.cm.hsv,
+            cmap = matplotlib.pyplot.cm.rainbow,
             vmin = 0.0,
             transform = cartopy.crs.Geodetic()
         )
