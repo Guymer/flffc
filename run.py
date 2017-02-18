@@ -36,7 +36,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
             continue
 
         # Find extent of the country ...
-        lon_min, lat_min, lon_max, lat_max = record.bounds
+        lon_min, lat_min, lon_max, lat_max = record.bounds                      # [deg], [deg], [deg], [deg]
         print "The bounding box of {0:s} is from ({1:.2f},{2:.2f}) to ({3:.2f},{4:.2f}).".format(record.attributes["NAME"], lon_min, lat_min, lon_max, lat_max)
 
         # Create plot and make it pretty ...
@@ -62,13 +62,13 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         )
 
         # Make longitude and latitude grid ...
-        xcoords = numpy.linspace(lon_min, lon_max, num = steps)
-        ycoords = numpy.linspace(lat_min, lat_max, num = steps)
+        xcoords = numpy.linspace(lon_min, lon_max, num = steps)                 # [deg]
+        ycoords = numpy.linspace(lat_min, lat_max, num = steps)                 # [deg]
 
         # Make empty lists of points ...
-        xpoints = []
-        ypoints = []
-        zpoints = []
+        xpoints = []                                                            # [deg]
+        ypoints = []                                                            # [deg]
+        zpoints = []                                                            # [m]
 
         # Loop over longitudes ...
         for ix in xrange(xcoords.size):
@@ -80,31 +80,34 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 if not record.geometry.contains(shapely.geometry.Point(xcoords[ix], ycoords[iy])):
                     continue
 
-                # Set silly minimum ...
-                # NOTE: Earth's mean radius is 6,371.009 km.
-                # NOTE: Therefore, Earth's mean circumference is 40,030.230 km.
-                zpoint1 = 1.0e6
+                # Set a silly initial minimum ...
+                # NOTE: Earth's mean radius is 6,371,009 m.
+                # NOTE: Therefore, Earth's mean circumference is 40,030,230 m.
+                zpoint1 = 5.0e7                                                 # [m]
 
                 # Loop over boundaries ...
                 for boundary in record.geometry.boundary:
                     # Loop over coordinates ...
                     for coord in boundary.coords:
                         # Find distance between points ...
-                        zpoint2 = dist_between_two_locs(
+                        zpoint2, alpha1, alpha2 = dist_between_two_locs(
                             lon1 = xcoords[ix],
                             lat1 = ycoords[iy],
                             lon2 = coord[0],
                             lat2 = coord[1]
-                        )
+                        )                                                       # [m], [deg], [deg]
 
                         # Replace current minimum if required ...
                         if zpoint2 < zpoint1:
-                            zpoint1 = zpoint2
+                            zpoint1 = zpoint2                                   # [m]
 
                 # Add values to lists ...
-                xpoints.append(xcoords[ix])
-                ypoints.append(ycoords[iy])
-                zpoints.append(zpoint1)
+                xpoints.append(xcoords[ix])                                     # [deg]
+                ypoints.append(ycoords[iy])                                     # [deg]
+                zpoints.append(zpoint1)                                         # [m]
+
+        # Convert m to km ...
+        zpoints /= 1000.0                                                       # [km]
 
         print "The furthest you can get from the coast is ~{0:.1f} km.".format(max(zpoints))
 
