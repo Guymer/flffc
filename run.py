@@ -101,13 +101,10 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                         if zpoint2 < zpoint1:
                             zpoint1 = zpoint2                                   # [m]
 
-                # Add values to lists ...
+                # Add values to lists (converting from m to km) ...
                 xpoints.append(xcoords[ix])                                     # [deg]
                 ypoints.append(ycoords[iy])                                     # [deg]
-                zpoints.append(zpoint1)                                         # [m]
-
-        # Convert m to km ...
-        zpoints /= 1000.0                                                       # [km]
+                zpoints.append(zpoint1 / 1000.0)                                # [km]
 
         print "The furthest you can get from the coast is ~{0:.1f} km.".format(max(zpoints))
 
