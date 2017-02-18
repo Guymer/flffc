@@ -6,9 +6,9 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
     import cartopy.crs
     import cartopy.io
     import cartopy.io.shapereader
+    import matplotlib
     # NOTE: http://matplotlib.org/faq/howto_faq.html#matplotlib-in-a-web-application-server
     matplotlib.use("Agg")
-    import matplotlib
     import matplotlib.pyplot
     import numpy
     import os
