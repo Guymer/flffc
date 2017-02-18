@@ -91,10 +91,10 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                     for coord in boundary.coords:
                         # Find distance between points ...
                         zpoint2, alpha1, alpha2 = dist_between_two_locs(
-                            lon1 = xcoords[ix],
-                            lat1 = ycoords[iy],
-                            lon2 = coord[0],
-                            lat2 = coord[1]
+                            lon1_deg = xcoords[ix],
+                            lat1_deg = ycoords[iy],
+                            lon2_deg = coord[0],
+                            lat2_deg = coord[1]
                         )                                                       # [m], [deg], [deg]
 
                         # Replace current minimum if required ...
