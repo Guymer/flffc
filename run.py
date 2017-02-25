@@ -88,7 +88,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                     # Loop over coordinates ...
                     for coord in boundary.coords:
                         # Find distance between points ...
-                        zpoint2, alpha1, alpha2 = pyguymer.dist_between_two_locs(
+                        zpoint2, alpha1, alpha2 = pyguymer.calc_dist_between_two_locs(
                             lon1_deg = xcoords[ix],
                             lat1_deg = ycoords[iy],
                             lon2_deg = coord[0],
