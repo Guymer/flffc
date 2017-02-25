@@ -9,6 +9,4 @@ wrapper function to perform the job for you.
 """
 
 # Load sub-functions ...
-from .angle_between_two_locs import angle_between_two_locs
-from .dist_between_two_locs import dist_between_two_locs
 from .run import run

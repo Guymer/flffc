@@ -12,11 +12,9 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
     import matplotlib.pyplot
     import numpy
     import os
+    import pyguymer
     import shapely
     import shapely.geometry
-
-    # Load sub-functions ...
-    from .dist_between_two_locs import dist_between_two_locs
 
     # Make output directory ...
     if not os.path.exists(dirOut):
@@ -90,7 +88,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                     # Loop over coordinates ...
                     for coord in boundary.coords:
                         # Find distance between points ...
-                        zpoint2, alpha1, alpha2 = dist_between_two_locs(
+                        zpoint2, alpha1, alpha2 = pyguymer.dist_between_two_locs(
                             lon1_deg = xcoords[ix],
                             lat1_deg = ycoords[iy],
                             lon2_deg = coord[0],
