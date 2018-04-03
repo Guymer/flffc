@@ -17,7 +17,7 @@ If `country` is not specified it defaults to "United Kingdom". If `steps` is not
 
 The last line of the output from FLFFC will tell you how far you can (roughly) get from the coast in your chosen country. For the United Kingdom (with 50 steps) the line is "The furthest you can get from the coast is ~101.6 km". FLFFC will also create a PNG in your current directory named after your chosen country showing where that location is. Below is the result for the United Kingdom.
 
-![FLFFC output for the United Kingdom](United Kingdom.png)
+![FLFFC output for the United Kingdom](UnitedKingdom.png)
 
 ## Dependencies
 
