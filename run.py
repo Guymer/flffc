@@ -52,7 +52,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 lat_max + 0.1
             ]
         )
-        pyguymer.add_map_background(ax, resolution = "medium2048px")
+        pyguymer.add_map_background(ax, resolution = "large4096px")
         ax.coastlines(
             resolution = "10m",
             color = "black",
