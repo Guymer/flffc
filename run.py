@@ -40,8 +40,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         # Create plot and make it pretty ...
         fig = matplotlib.pyplot.figure(
             figsize = (9, 6),
-            dpi = 300,
-            frameon = False
+                dpi = 300
         )
         ax = matplotlib.pyplot.axes(projection = cartopy.crs.PlateCarree())
         ax.set_extent(
@@ -135,8 +134,8 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         matplotlib.pyplot.title("Location Furthest From Coast")
         matplotlib.pyplot.savefig(
             os.path.join(dirOut, "{0:s}.png".format(country)),
-            dpi = 300,
             bbox_inches = "tight",
-            pad_inches = 0.1
+                    dpi = 300,
+             pad_inches = 0.1
         )
         matplotlib.pyplot.close("all")
