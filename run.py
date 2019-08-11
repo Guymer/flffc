@@ -1,20 +1,36 @@
-# -*- coding: utf-8 -*-
-
 def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
-    # Import modules ...
-    import cartopy
-    import cartopy.crs
-    import cartopy.io
-    import cartopy.io.shapereader
-    import matplotlib
-    # NOTE: http://matplotlib.org/faq/howto_faq.html#matplotlib-in-a-web-application-server
-    matplotlib.use("Agg")
-    import matplotlib.pyplot
-    import numpy
+    # Import standard modules ...
     import os
-    import pyguymer
-    import shapely
-    import shapely.geometry
+
+    # Import special modules ...
+    try:
+        import cartopy
+        import cartopy.crs
+        import cartopy.io
+        import cartopy.io.shapereader
+    except:
+        raise Exception("run \"pip install --user cartopy\"")
+    try:
+        import matplotlib
+        matplotlib.use("Agg")                                                   # NOTE: http://matplotlib.org/faq/howto_faq.html#matplotlib-in-a-web-application-server
+        import matplotlib.pyplot
+    except:
+        raise Exception("run \"pip install --user matplotlib\"")
+    try:
+        import numpy
+    except:
+        raise Exception("run \"pip install --user numpy\"")
+    try:
+        import shapely
+        import shapely.geometry
+    except:
+        raise Exception("run \"pip install --user shapely\"")
+
+    # Import my modules ...
+    try:
+        import pyguymer3
+    except:
+        raise Exception("you need to have the Python module from https://github.com/Guymer/PyGuymer3 located somewhere in your $PYTHONPATH")
 
     # Make output directory ...
     if not os.path.exists(dirOut):
@@ -35,13 +51,10 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
 
         # Find extent of the country ...
         lon_min, lat_min, lon_max, lat_max = record.bounds                      # [deg], [deg], [deg], [deg]
-        print "The bounding box of {0:s} is from ({1:.2f},{2:.2f}) to ({3:.2f},{4:.2f}).".format(record.attributes["NAME"], lon_min, lat_min, lon_max, lat_max)
+        print("The bounding box of {:s} is from ({:.2f},{:.2f}) to ({:.2f},{:.2f}).".format(record.attributes["NAME"], lon_min, lat_min, lon_max, lat_max))
 
         # Create plot and make it pretty ...
-        fig = matplotlib.pyplot.figure(
-            figsize = (9, 6),
-                dpi = 300
-        )
+        fg = matplotlib.pyplot.figure(figsize = (9, 6), dpi = 300)
         ax = matplotlib.pyplot.axes(projection = cartopy.crs.PlateCarree())
         ax.set_extent(
             [
@@ -51,12 +64,8 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 lat_max + 0.1
             ]
         )
-        pyguymer.add_map_background(ax, resolution = "large4096px")
-        ax.coastlines(
-            resolution = "10m",
-            color = "black",
-            linewidth = 0.1
-        )
+        pyguymer3.add_map_background(ax, resolution = "large4096px")
+        ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
 
         # Make longitude and latitude grid ...
         xcoords = numpy.linspace(lon_min, lon_max, num = steps)                 # [deg]
@@ -68,11 +77,11 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         zpoints = []                                                            # [m]
 
         # Loop over longitudes ...
-        for ix in xrange(xcoords.size):
-            print "Calculating slice {0:d} of {1:d} ...".format(ix + 1, xcoords.size)
+        for ix in range(xcoords.size):
+            print("Calculating slice {:d} of {:d} ...".format(ix + 1, xcoords.size))
 
             # Loop over latitudes ...
-            for iy in xrange(ycoords.size):
+            for iy in range(ycoords.size):
                 # Skip this point if it is not within the geometry ...
                 if not record.geometry.contains(shapely.geometry.Point(xcoords[ix], ycoords[iy])):
                     continue
@@ -87,7 +96,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                     # Loop over coordinates ...
                     for coord in boundary.coords:
                         # Find distance between points ...
-                        zpoint2, alpha1, alpha2 = pyguymer.calc_dist_between_two_locs(
+                        zpoint2, alpha1, alpha2 = pyguymer3.calc_dist_between_two_locs(
                             lon1_deg = xcoords[ix],
                             lat1_deg = ycoords[iy],
                             lon2_deg = coord[0],
@@ -103,7 +112,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 ypoints.append(ycoords[iy])                                     # [deg]
                 zpoints.append(zpoint1 / 1000.0)                                # [km]
 
-        print "The furthest you can get from the coast is ~{0:.1f} km.".format(max(zpoints))
+        print("The furthest you can get from the coast is ~{:.1f} km.".format(max(zpoints)))
 
         # Plot points ...
         # NOTE: Default value of the optional keyword argument "s" (as of
@@ -131,11 +140,12 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         cb.set_label("Distance [km]")
 
         # Save map as PNG ...
-        matplotlib.pyplot.title("Location Furthest From Coast")
-        matplotlib.pyplot.savefig(
-            os.path.join(dirOut, "{0:s}.png".format(country)),
+        ax.set_title("Location Furthest From Coast")
+        fg.savefig(
+            os.path.join(dirOut, "{:s}.png".format(country)),
             bbox_inches = "tight",
                     dpi = 300,
              pad_inches = 0.1
         )
+        pyguymer3.optipng(os.path.join(dirOut, "{:s}.png".format(country)))
         matplotlib.pyplot.close("all")

@@ -1,6 +1,6 @@
 # Find Location Furthest From Coast (FLFFC)
 
-This module contains all the functions required to calculate the location that is the furthest away from the coast in a particular country. It also contains a wrapper function to perform the job for you and save the answer as an image.
+This Python 3.x module contains all the functions required to calculate the location that is the furthest away from the coast in a particular country. It also contains a wrapper function to perform the job for you and save the answer as an image.
 
 ## Usage
 
@@ -15,7 +15,7 @@ If `country` is not specified it defaults to "United Kingdom". If `steps` is not
 
 ## Example Output
 
-The last line of the output from FLFFC will tell you how far you can (roughly) get from the coast in your chosen country. For the United Kingdom (with 50 steps) the line is "The furthest you can get from the coast is ~101.6 km". FLFFC will also create a PNG in your current directory named after your chosen country showing where that location is. Below is the result for the United Kingdom.
+The last line of the output from FLFFC will tell you how far you can (roughly) get from the coast in your chosen country. For the United Kingdom (with 50 steps) the line is "The furthest you can get from the coast is ~101.6 km". FLFFC will also create a PNG in `dirOut` named after your chosen country showing where that location is. Below is the result for the United Kingdom (with 50 steps).
 
 ![FLFFC output for the United Kingdom](UnitedKingdom.png)
 
@@ -26,7 +26,7 @@ FLFFC requires the following Python modules to be installed and available in you
 * [cartopy](https://pypi.org/project/Cartopy)
 * [matplotlib](https://pypi.org/project/matplotlib)
 * [numpy](https://pypi.org/project/numpy)
-* [pyguymer](https://github.com/Guymer/PyGuymer)
+* [pyguymer3](https://github.com/Guymer/PyGuymer3)
 * [shapely](https://pypi.org/project/Shapely)
 
 FLFFC uses some [Natural Earth](http://www.naturalearthdata.com/) resources via the [Cartopy](http://scitools.org.uk/cartopy/) module. If they do not exist on your system then Cartopy will download them for you in the background. Consequently, a working internet connection may be required the first time you run FLFFC.
