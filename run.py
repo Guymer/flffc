@@ -147,6 +147,5 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                     dpi = 300,
              pad_inches = 0.1
         )
-        pyguymer3.exiftool(os.path.join(dirOut, "{:s}.png".format(country)))
-        pyguymer3.optipng(os.path.join(dirOut, "{:s}.png".format(country)))
+        pyguymer3.optimize_image(os.path.join(dirOut, "{:s}.png".format(country)), strip = True)
         matplotlib.pyplot.close("all")
