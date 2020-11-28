@@ -9,22 +9,22 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         import cartopy.io
         import cartopy.io.shapereader
     except:
-        raise Exception("run \"pip install --user cartopy\"")
+        raise Exception("\"cartopy\" is not installed; run \"pip install --user Cartopy\"") from None
     try:
         import matplotlib
         matplotlib.use("Agg")                                                   # NOTE: https://matplotlib.org/gallery/user_interfaces/canvasagg.html
         import matplotlib.pyplot
     except:
-        raise Exception("run \"pip install --user matplotlib\"")
+        raise Exception("\"matplotlib\" is not installed; run \"pip install --user matplotlib\"") from None
     try:
         import numpy
     except:
-        raise Exception("run \"pip install --user numpy\"")
+        raise Exception("\"numpy\" is not installed; run \"pip install --user numpy\"") from None
     try:
         import shapely
         import shapely.geometry
     except:
-        raise Exception("run \"pip install --user shapely\"")
+        raise Exception("\"shapely\" is not installed; run \"pip install --user Shapely\"") from None
 
     # Import my modules ...
     try:
