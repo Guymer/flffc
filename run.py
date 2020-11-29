@@ -50,7 +50,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
             continue
 
         # Find extent of the country ...
-        lon_min, lat_min, lon_max, lat_max = record.bounds                      # [deg], [deg], [deg], [deg]
+        lon_min, lat_min, lon_max, lat_max = record.bounds                      # [°], [°], [°], [°]
         print("The bounding box of {:s} is from ({:.2f},{:.2f}) to ({:.2f},{:.2f}).".format(record.attributes["NAME"], lon_min, lat_min, lon_max, lat_max))
 
         # Create plot and make it pretty ...
@@ -68,12 +68,12 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
 
         # Make longitude and latitude grid ...
-        xcoords = numpy.linspace(lon_min, lon_max, num = steps)                 # [deg]
-        ycoords = numpy.linspace(lat_min, lat_max, num = steps)                 # [deg]
+        xcoords = numpy.linspace(lon_min, lon_max, num = steps)                 # [°]
+        ycoords = numpy.linspace(lat_min, lat_max, num = steps)                 # [°]
 
         # Make empty lists of points ...
-        xpoints = []                                                            # [deg]
-        ypoints = []                                                            # [deg]
+        xpoints = []                                                            # [°]
+        ypoints = []                                                            # [°]
         zpoints = []                                                            # [m]
 
         # Loop over longitudes ...
@@ -101,15 +101,15 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                             lat1_deg = ycoords[iy],
                             lon2_deg = coord[0],
                             lat2_deg = coord[1]
-                        )                                                       # [m], [deg], [deg]
+                        )                                                       # [m], [°], [°]
 
                         # Replace current minimum if required ...
                         if zpoint2 < zpoint1:
                             zpoint1 = zpoint2                                   # [m]
 
                 # Add values to lists (converting from m to km) ...
-                xpoints.append(xcoords[ix])                                     # [deg]
-                ypoints.append(ycoords[iy])                                     # [deg]
+                xpoints.append(xcoords[ix])                                     # [°]
+                ypoints.append(ycoords[iy])                                     # [°]
                 zpoints.append(zpoint1 / 1000.0)                                # [km]
 
         print("The furthest you can get from the coast is ~{:.1f} km.".format(max(zpoints)))
