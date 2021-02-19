@@ -148,4 +148,4 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
              pad_inches = 0.1
         )
         pyguymer3.optimize_image(os.path.join(dirOut, "{:s}.png".format(country)), strip = True)
-        matplotlib.pyplot.close("all")
+        matplotlib.pyplot.close(fg)
