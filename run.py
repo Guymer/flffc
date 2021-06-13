@@ -64,7 +64,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 lat_max + 0.1
             ]
         )
-        pyguymer3.add_map_background(ax, resolution = "large4096px")
+        pyguymer3.geo.add_map_background(ax, resolution = "large4096px")
         ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
 
         # Make longitude and latitude grid ...
@@ -96,7 +96,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                     # Loop over coordinates ...
                     for coord in boundary.coords:
                         # Find distance between points ...
-                        zpoint2, alpha1, alpha2 = pyguymer3.calc_dist_between_two_locs(
+                        zpoint2, alpha1, alpha2 = pyguymer3.geo.calc_dist_between_two_locs(
                             lon1_deg = xcoords[ix],
                             lat1_deg = ycoords[iy],
                             lon2_deg = coord[0],
