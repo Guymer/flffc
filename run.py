@@ -66,7 +66,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 lat_max + 0.1
             ]
         )
-        pyguymer3.geo.add_map_background(ax, resolution = "large4096px")
+        pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
         ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
 
         # Make longitude and latitude grid ...
