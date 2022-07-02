@@ -53,7 +53,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
 
         # Find extent of the country ...
         lon_min, lat_min, lon_max, lat_max = record.bounds                      # [°], [°], [°], [°]
-        print("The bounding box of {:s} is from ({:.2f},{:.2f}) to ({:.2f},{:.2f}).".format(record.attributes["NAME"], lon_min, lat_min, lon_max, lat_max))
+        print(f'The bounding box of {record.attributes["NAME"]} is from ({lon_min:.2f},{lat_min:.2f}) to ({lon_max:.2f},{lat_max:.2f}).')
 
         # Create plot and make it pretty ...
         fg = matplotlib.pyplot.figure(figsize = (9, 6), dpi = 300)
@@ -80,7 +80,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
 
         # Loop over longitudes ...
         for ix in range(xcoords.size):
-            print("Calculating slice {:d} of {:d} ...".format(ix + 1, xcoords.size))
+            print(f"Calculating slice {ix + 1:d} of {xcoords.size:d} ...")
 
             # Loop over latitudes ...
             for iy in range(ycoords.size):
@@ -114,7 +114,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 ypoints.append(ycoords[iy])                                     # [°]
                 zpoints.append(zpoint1 / 1000.0)                                # [km]
 
-        print("The furthest you can get from the coast is ~{:.1f} km.".format(max(zpoints)))
+        print(f"The furthest you can get from the coast is ~{max(zpoints):.1f} km.")
 
         # Plot points ...
         # NOTE: Default value of the optional keyword argument "s" (as of
@@ -144,10 +144,10 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         # Save map as PNG ...
         ax.set_title("Location Furthest From Coast")
         fg.savefig(
-            os.path.join(dirOut, "{:s}.png".format(country)),
+            f"{dirOut}/{country}.png",
             bbox_inches = "tight",
                     dpi = 300,
              pad_inches = 0.1
         )
-        pyguymer3.image.optimize_image(os.path.join(dirOut, "{:s}.png".format(country)), strip = True)
+        pyguymer3.image.optimize_image(f"{dirOut}/{country}.png", strip = True)
         matplotlib.pyplot.close(fg)
