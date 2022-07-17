@@ -57,7 +57,7 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
 
         # Create plot and make it pretty ...
         fg = matplotlib.pyplot.figure(figsize = (9, 6), dpi = 300)
-        ax = matplotlib.pyplot.axes(projection = cartopy.crs.PlateCarree())
+        ax = fg.add_subplot(projection = cartopy.crs.PlateCarree())
         ax.set_extent(
             [
                 lon_min - 0.1,
