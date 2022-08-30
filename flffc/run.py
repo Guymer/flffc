@@ -41,19 +41,20 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
     # Find file containing all the country shapes ...
     shape_file = cartopy.io.shapereader.natural_earth(
         resolution = "10m",
-        category = "cultural",
-        name = "admin_0_countries"
+          category = "cultural",
+              name = "admin_0_countries",
     )
 
     # Loop over records ...
     for record in cartopy.io.shapereader.Reader(shape_file).records():
         # Create short-hands ...
         # NOTE: According to the developer of Natural Earth:
-        #           "Because Natural Earth has a more fidelity than ISO, and tracks
-        #           countries that ISO doesn't, Natural Earth maintains it's own set
-        #           of 3-character codes for each admin-0 related feature."
-        #       Therefore, when "ISO_A2" or "ISO_A3" are not populated I must fall
-        #       back on "ISO_A2_EH" and "ISO_A3_EH" instead, see:
+        #           "Because Natural Earth has a more fidelity than ISO, and
+        #           tracks countries that ISO doesn't, Natural Earth maintains
+        #           it's own set of 3-character codes for each admin-0 related
+        #           feature."
+        #       Therefore, when "ISO_A2" or "ISO_A3" are not populated I must
+        #       fall back on "ISO_A2_EH" and "ISO_A3_EH" instead, see:
         #         * https://github.com/nvkelso/natural-earth-vector/issues/268
         neA2 = record.attributes["ISO_A2"].replace("\x00", " ").strip()
         neA3 = record.attributes["ISO_A3"].replace("\x00", " ").strip()
@@ -66,26 +67,41 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
             neA3 = record.attributes["ISO_A3_EH"].replace("\x00", " ").strip()
 
         # Skip this record if it is not the one we are looking for ...
-        if record.attributes["NAME"] != country:
+        if neCountry != country:
             continue
 
         # Find extent of the country ...
         lon_min, lat_min, lon_max, lat_max = record.bounds                      # [°], [°], [°], [°]
-        print(f'The bounding box of {record.attributes["NAME"]} is from ({lon_min:.2f},{lat_min:.2f}) to ({lon_max:.2f},{lat_max:.2f}).')
+        print(f"The bounding box of {neCountry} is from ({lon_min:.2f},{lat_min:.2f}) to ({lon_max:.2f},{lat_max:.2f}).")
 
-        # Create plot and make it pretty ...
-        fg = matplotlib.pyplot.figure(figsize = (9, 6), dpi = 300)
-        ax = fg.add_subplot(projection = cartopy.crs.PlateCarree())
+        # Create figure ...
+        fg = matplotlib.pyplot.figure(
+                dpi = 300,
+            figsize = (9, 6),
+        )
+
+        # Create axis ...
+        ax = fg.add_subplot(
+            1,
+            1,
+            1,
+            projection = cartopy.crs.Orthographic(
+                central_longitude = 0.5 * (lon_min + lon_max),
+                 central_latitude = 0.5 * (lat_min + lat_max),
+            ),
+        )
+
+        # Configure axis ...
+        ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
         ax.set_extent(
             [
                 lon_min - 0.1,
                 lon_max + 0.1,
                 lat_min - 0.1,
-                lat_max + 0.1
+                lat_max + 0.1,
             ]
         )
         pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
-        ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
 
         # Make longitude and latitude grid ...
         xcoords = numpy.linspace(lon_min, lon_max, num = steps)                 # [°]
@@ -97,11 +113,11 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         zpoints = []                                                            # [m]
 
         # Loop over longitudes ...
-        for ix in range(xcoords.size):
-            print(f"Calculating slice {ix + 1:d} of {xcoords.size:d} ...")
+        for ix in range(steps):
+            print(f"Calculating slice {ix + 1:d} of {steps:d} ...")
 
             # Loop over latitudes ...
-            for iy in range(ycoords.size):
+            for iy in range(steps):
                 # Skip this point if it is not within the geometry ...
                 if not record.geometry.contains(shapely.geometry.Point(xcoords[ix], ycoords[iy])):
                     continue
@@ -112,15 +128,15 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
                 zpoint1 = 5.0e7                                                 # [m]
 
                 # Loop over boundaries ...
-                for boundary in record.geometry.boundary:
+                for boundary in pyguymer3.geo.extract_lines(record.geometry.boundary):
                     # Loop over coordinates ...
                     for coord in boundary.coords:
                         # Find distance between points ...
-                        zpoint2, alpha1, alpha2 = pyguymer3.geo.calc_dist_between_two_locs(
+                        zpoint2, _, _ = pyguymer3.geo.calc_dist_between_two_locs(
                             lon1_deg = xcoords[ix],
                             lat1_deg = ycoords[iy],
                             lon2_deg = coord[0],
-                            lat2_deg = coord[1]
+                            lat2_deg = coord[1],
                         )                                                       # [m], [°], [°]
 
                         # Replace current minimum if required ...
@@ -146,26 +162,36 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         sc = matplotlib.pyplot.scatter(
             xpoints,
             ypoints,
-            s = (200 / steps) ** 2,
-            c = zpoints,
-            alpha = 0.5,
+                    s = (200 / steps) ** 2,
+                    c = zpoints,
             linewidth = 0.5,
-            cmap = matplotlib.pyplot.cm.rainbow,
-            vmin = 0.0,
-            transform = cartopy.crs.Geodetic()
+                 cmap = matplotlib.pyplot.cm.rainbow,
+                 vmin = 0.0,
+            transform = cartopy.crs.Geodetic(),
         )
 
-        # Add colour bar ...
+        # Create colour bar ...
         cb = matplotlib.pyplot.colorbar(sc)
+
+        # Configure colour bar ...
         cb.set_label("Distance [km]")
 
-        # Save map as PNG ...
+        # Configure axis ...
         ax.set_title("Location Furthest From Coast")
+
+        # Configure figure ...
+        fg.tight_layout()
+
+        # Save figure ...
         fg.savefig(
             f"{dirOut}/{country}.png",
-            bbox_inches = "tight",
-                    dpi = 300,
-             pad_inches = 0.1
+                   dpi = 300,
+            pad_inches = 0.1
         )
-        pyguymer3.image.optimize_image(f"{dirOut}/{country}.png", strip = True)
         matplotlib.pyplot.close(fg)
+
+        # Optimize PNG ...
+        pyguymer3.image.optimize_image(
+            f"{dirOut}/{country}.png",
+            strip = True,
+        )
