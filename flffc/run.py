@@ -39,40 +39,24 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         os.makedirs(dirOut)
 
     # Find file containing all the country shapes ...
-    shape_file = cartopy.io.shapereader.natural_earth(
-        resolution = "10m",
+    sfile = cartopy.io.shapereader.natural_earth(
           category = "cultural",
               name = "admin_0_countries",
+        resolution = "10m",
     )
 
     # Loop over records ...
-    for record in cartopy.io.shapereader.Reader(shape_file).records():
-        # Create short-hands ...
-        # NOTE: According to the developer of Natural Earth:
-        #           "Because Natural Earth has a more fidelity than ISO, and
-        #           tracks countries that ISO doesn't, Natural Earth maintains
-        #           it's own set of 3-character codes for each admin-0 related
-        #           feature."
-        #       Therefore, when "ISO_A2" or "ISO_A3" are not populated I must
-        #       fall back on "ISO_A2_EH" and "ISO_A3_EH" instead, see:
-        #         * https://github.com/nvkelso/natural-earth-vector/issues/268
-        neA2 = record.attributes["ISO_A2"].replace("\x00", " ").strip()
-        neA3 = record.attributes["ISO_A3"].replace("\x00", " ").strip()
-        neCountry = record.attributes["NAME"].replace("\x00", " ").strip()
-        if neA2 == "-99":
-            print(f"INFO: Falling back on \"ISO_A2_EH\" for \"{neCountry}\".")
-            neA2 = record.attributes["ISO_A2_EH"].replace("\x00", " ").strip()
-        if neA3 == "-99":
-            print(f"INFO: Falling back on \"ISO_A3_EH\" for \"{neCountry}\".")
-            neA3 = record.attributes["ISO_A3_EH"].replace("\x00", " ").strip()
+    for record in cartopy.io.shapereader.Reader(sfile).records():
+        # Create short-hand ...
+        neName = pyguymer3.geo.getRecordAttribute(record, "NAME")
 
         # Skip this record if it is not the one we are looking for ...
-        if neCountry != country:
+        if neName != country:
             continue
 
         # Find extent of the country ...
         lon_min, lat_min, lon_max, lat_max = record.bounds                      # [°], [°], [°], [°]
-        print(f"The bounding box of {neCountry} is from ({lon_min:.2f},{lat_min:.2f}) to ({lon_max:.2f},{lat_max:.2f}).")
+        print(f"The bounding box of {neName} is from ({lon_min:.2f},{lat_min:.2f}) to ({lon_max:.2f},{lat_max:.2f}).")
 
         # Create figure ...
         fg = matplotlib.pyplot.figure(
@@ -82,9 +66,6 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
 
         # Create axis ...
         ax = fg.add_subplot(
-            1,
-            1,
-            1,
             projection = cartopy.crs.Orthographic(
                 central_longitude = 0.5 * (lon_min + lon_max),
                  central_latitude = 0.5 * (lat_min + lat_max),
@@ -159,19 +140,19 @@ def run(dirOut = "FLFFCoutput", country = "United Kingdom", steps = 50):
         #       should do that as different users request different numbers of
         #       steps. With the default value of "steps = 50" the size will be
         #       "16 points ^ 2" - a slightly smaller area than default.
-        sc = matplotlib.pyplot.scatter(
+        sc = ax.scatter(
             xpoints,
             ypoints,
-                    s = (200 / steps) ** 2,
                     c = zpoints,
-            linewidth = 0.5,
                  cmap = matplotlib.pyplot.cm.rainbow,
-                 vmin = 0.0,
+            linewidth = 0.5,
+                    s = (200 / steps) ** 2,
             transform = cartopy.crs.Geodetic(),
+                 vmin = 0.0,
         )
 
         # Create colour bar ...
-        cb = matplotlib.pyplot.colorbar(sc)
+        cb = fg.colorbar(sc)
 
         # Configure colour bar ...
         cb.set_label("Distance [km]")
