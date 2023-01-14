@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+# Define function ...
 def run(kwArgCheck = None, country = "United Kingdom", dirOut = "FLFFCoutput", steps = 50):
     # Import standard modules ...
     import os
