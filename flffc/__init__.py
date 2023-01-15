@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Find Location Furthest From Coast (FLFFC)
 
