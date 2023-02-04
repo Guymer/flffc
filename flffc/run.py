@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Define function ...
-def run(kwArgCheck = None, country = "United Kingdom", dirOut = "FLFFCoutput", steps = 50):
+def run(dirOut, /, *, country = "United Kingdom", steps = 50):
     # Import standard modules ...
     import os
 
@@ -42,10 +42,6 @@ def run(kwArgCheck = None, country = "United Kingdom", dirOut = "FLFFCoutput", s
         import pyguymer3.image
     except:
         raise Exception("\"pyguymer3\" is not installed; you need to have the Python module from https://github.com/Guymer/PyGuymer3 located somewhere in your $PYTHONPATH") from None
-
-    # Check keyword arguments ...
-    if kwArgCheck is not None:
-        print(f"WARNING: \"{__name__}\" has been called with an extra positional argument")
 
     # Make output directory ...
     if not os.path.exists(dirOut):
