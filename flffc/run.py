@@ -120,10 +120,10 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                     for coord in poly.exterior.coords:
                         # Find distance between points ...
                         zpoint2, _, _ = pyguymer3.geo.calc_dist_between_two_locs(
-                            lon1_deg = xcoords[ix],
-                            lat1_deg = ycoords[iy],
-                            lon2_deg = coord[0],
-                            lat2_deg = coord[1],
+                            xcoords[ix],
+                            ycoords[iy],
+                            coord[0],
+                            coord[1],
                         )                                                       # [m], [°], [°]
 
                         # Replace current minimum if required ...
