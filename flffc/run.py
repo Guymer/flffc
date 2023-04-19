@@ -65,29 +65,49 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
 
         # Find extent of the country ...
         lon_min, lat_min, lon_max, lat_max = record.bounds                      # [°], [°], [°], [°]
-        print(f"The bounding box of {neName} is from ({lon_min:.2f},{lat_min:.2f}) to ({lon_max:.2f},{lat_max:.2f}).")
+        print(f"The bounding box of {neName} is from ({lon_min:.2f}°,{lat_min:.2f}°) to ({lon_max:.2f}°,{lat_max:.2f}°).")
+
+        # Find the furthest distance from the centre to any corner ...
+        maxDist = max(
+            pyguymer3.geo.calc_dist_between_two_locs(
+                0.5 * (lon_min + lon_max),
+                0.5 * (lat_min + lat_max),
+                lon_min,
+                lat_min,
+            )[0],
+            pyguymer3.geo.calc_dist_between_two_locs(
+                0.5 * (lon_min + lon_max),
+                0.5 * (lat_min + lat_max),
+                lon_max,
+                lat_min,
+            )[0],
+            pyguymer3.geo.calc_dist_between_two_locs(
+                0.5 * (lon_min + lon_max),
+                0.5 * (lat_min + lat_max),
+                lon_min,
+                lat_max,
+            )[0],
+            pyguymer3.geo.calc_dist_between_two_locs(
+                0.5 * (lon_min + lon_max),
+                0.5 * (lat_min + lat_max),
+                lon_max,
+                lat_max,
+            )[0],
+        )                                                                       # [m]
 
         # Create figure ...
         fg = matplotlib.pyplot.figure(figsize = (9, 6))
 
         # Create axis ...
-        ax = fg.add_subplot(
-            projection = cartopy.crs.Orthographic(
-                central_longitude = 0.5 * (lon_min + lon_max),
-                 central_latitude = 0.5 * (lat_min + lat_max),
-            ),
+        ax = pyguymer3.geo.add_top_down_axis(
+            fg,
+            0.5 * (lon_min + lon_max),
+            0.5 * (lat_min + lat_max),
+            maxDist + 12.0 * 1852.0,
         )
 
         # Configure axis ...
         ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
-        ax.set_extent(
-            [
-                lon_min - 0.1,
-                lon_max + 0.1,
-                lat_min - 0.1,
-                lat_max + 0.1,
-            ]
-        )
         pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
 
         # Make longitude and latitude grid ...
