@@ -107,7 +107,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         )
 
         # Configure axis ...
-        ax.coastlines(resolution = "10m", color = "black", linewidth = 0.1)
+        pyguymer3.geo.add_coastlines(ax, resolution = "i")
         pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
 
         # Make longitude and latitude grid ...
