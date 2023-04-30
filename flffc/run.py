@@ -172,7 +172,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                     c = zpoints,
                  cmap = matplotlib.pyplot.cm.rainbow,
             linewidth = 0.5,
-                    s = (200 / steps) ** 2,
+                    s = pow(200.0 / steps, 2),
             transform = cartopy.crs.Geodetic(),
                  vmin = 0.0,
         )
