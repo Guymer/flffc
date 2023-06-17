@@ -175,7 +175,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         )
 
         # Add colour bar ...
-        cb = fg.colorbar(sc)
+        cb = fg.colorbar(sc, ax = ax, orientation = "vertical")
 
         # Configure colour bar ...
         cb.set_label("Distance [km]")
