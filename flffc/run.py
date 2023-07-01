@@ -127,9 +127,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                     continue
 
                 # Set a silly initial minimum ...
-                # NOTE: Earth's mean radius is 6,371,009 m.
-                # NOTE: Therefore, Earth's mean circumference is 40,030,230 m.
-                zpoint1 = 5.0e7                                                 # [m]
+                zpoint1 = 2.0 * pyguymer3.CIRCUMFERENCE_OF_EARTH                # [m]
 
                 # Loop over Polygons ...
                 for poly in pyguymer3.geo.extract_polys(record.geometry):
