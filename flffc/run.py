@@ -65,49 +65,6 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         lon_min, lat_min, lon_max, lat_max = record.bounds                      # [°], [°], [°], [°]
         print(f"The bounding box of {neName} is from ({lon_min:.2f}°,{lat_min:.2f}°) to ({lon_max:.2f}°,{lat_max:.2f}°).")
 
-        # Find the furthest distance from the centre to any corner ...
-        maxDist = max(
-            pyguymer3.geo.calc_dist_between_two_locs(
-                0.5 * (lon_min + lon_max),
-                0.5 * (lat_min + lat_max),
-                lon_min,
-                lat_min,
-            )[0],
-            pyguymer3.geo.calc_dist_between_two_locs(
-                0.5 * (lon_min + lon_max),
-                0.5 * (lat_min + lat_max),
-                lon_max,
-                lat_min,
-            )[0],
-            pyguymer3.geo.calc_dist_between_two_locs(
-                0.5 * (lon_min + lon_max),
-                0.5 * (lat_min + lat_max),
-                lon_min,
-                lat_max,
-            )[0],
-            pyguymer3.geo.calc_dist_between_two_locs(
-                0.5 * (lon_min + lon_max),
-                0.5 * (lat_min + lat_max),
-                lon_max,
-                lat_max,
-            )[0],
-        )                                                                       # [m]
-
-        # Create figure ...
-        fg = matplotlib.pyplot.figure()
-
-        # Create axis ...
-        ax = pyguymer3.geo.add_top_down_axis(
-            fg,
-            0.5 * (lon_min + lon_max),
-            0.5 * (lat_min + lat_max),
-            maxDist + 12.0 * 1852.0,
-        )
-
-        # Configure axis ...
-        pyguymer3.geo.add_coastlines(ax)
-        pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
-
         # Make longitude and latitude grid ...
         xcoords = numpy.linspace(lon_min, lon_max, num = steps)                 # [°]
         ycoords = numpy.linspace(lat_min, lat_max, num = steps)                 # [°]
@@ -152,6 +109,29 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                 zpoints.append(zpoint1 / 1000.0)                                # [km]
 
         print(f"The furthest you can get from the coast is ~{max(zpoints):.1f} km.")
+
+        # Find middle of points and the furthest distance ...
+        midLon, midLat, maxDist = pyguymer3.geo.find_middle_of_locs(
+            numpy.array(xpoints),
+            numpy.array(ypoints),
+            pad = 12.0 * 1852.0,
+        )                                                                       # [°], [°], [m]
+
+        # Create figure ...
+        fg = matplotlib.pyplot.figure()
+
+        # Create axis ...
+        ax = pyguymer3.geo.add_top_down_axis(
+            fg,
+            midLon,
+            midLat,
+            maxDist,
+            add_gridlines = True,
+        )
+
+        # Configure axis ...
+        pyguymer3.geo.add_coastlines(ax)
+        pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
 
         # Plot points ...
         # NOTE: Default value of the optional keyword argument "s" (as of
