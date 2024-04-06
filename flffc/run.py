@@ -130,8 +130,8 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
             fg,
             midLon,
             midLat,
-            maxDist,
             add_gridlines = True,
+                     dist = maxDist,
         )
 
         # Configure axis ...
