@@ -126,12 +126,12 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         fg = matplotlib.pyplot.figure()
 
         # Create axis ...
-        ax = pyguymer3.geo.add_topDown_axis(
+        ax = pyguymer3.geo.add_axis(
             fg,
-            midLon,
-            midLat,
             add_gridlines = True,
                      dist = maxDist,
+                      lat = midLat,
+                      lon = midLon,
         )
 
         # Configure axis ...
