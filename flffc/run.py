@@ -128,10 +128,9 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         # Create axis ...
         ax = pyguymer3.geo.add_axis(
             fg,
-            add_gridlines = True,
-                     dist = maxDist,
-                      lat = midLat,
-                      lon = midLon,
+            dist = maxDist,
+             lat = midLat,
+             lon = midLon,
         )
 
         # Configure axis ...
