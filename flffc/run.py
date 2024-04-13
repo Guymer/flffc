@@ -146,6 +146,9 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         #       should do that as different users request different numbers of
         #       steps. With the default value of "steps = 50" the size will be
         #       "16 points ^ 2" - a slightly smaller area than default.
+        # NOTE: As of 5/Dec/2023, the default "zorder" of the coastlines is 1.5,
+        #       the default "zorder" of the gridlines is 2.0 and the default
+        #       "zorder" of the scattered points is 1.0.
         sc = ax.scatter(
             xpoints,
             ypoints,
@@ -155,6 +158,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                     s = pow(200.0 / steps, 2),
             transform = cartopy.crs.Geodetic(),
                  vmin = 0.0,
+               zorder = 5.0,
         )
 
         # Add colour bar ...
