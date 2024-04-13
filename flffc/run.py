@@ -134,7 +134,6 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         )
 
         # Configure axis ...
-        pyguymer3.geo.add_coastlines(ax)
         pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
 
         # Plot points ...
