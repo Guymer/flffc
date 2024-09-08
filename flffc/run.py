@@ -105,8 +105,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                         )                                                       # [m], [°], [°]
 
                         # Replace current minimum if required ...
-                        if zpoint2 < zpoint1:
-                            zpoint1 = zpoint2                                   # [m]
+                        zpoint1 = min(zpoint1, zpoint2)                         # [m]
 
                 # Add values to lists (converting from m to km) ...
                 xpoints.append(xcoords[ix])                                     # [°]
