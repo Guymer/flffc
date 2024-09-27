@@ -3,5 +3,6 @@
 
 cartopy
 matplotlib
+meson
 numpy
 shapely
