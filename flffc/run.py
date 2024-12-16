@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
 
 # Define function ...
-def run(dirOut, /, *, country = "United Kingdom", steps = 50):
+def run(
+    dirOut,
+    /,
+    *,
+      country = "United Kingdom",
+        debug = __debug__,
+        nIter = 100,
+    onlyValid = False,
+       repair = False,
+        steps = 50,
+      timeout = 60.0,
+):
     # Import standard modules ...
     import os
 
@@ -93,7 +104,11 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                 zpoint1 = 2.0 * pyguymer3.CIRCUMFERENCE_OF_EARTH                # [m]
 
                 # Loop over Polygons ...
-                for poly in pyguymer3.geo.extract_polys(record.geometry):
+                for poly in pyguymer3.geo.extract_polys(
+                    record.geometry,
+                    onlyValid = onlyValid,
+                       repair = repair,
+                ):
                     # Loop over coordinates in exterior ring ...
                     for coord in poly.exterior.coords:
                         # Find distance between points ...
@@ -102,6 +117,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
                             ycoords[iy],
                             coord[0],
                             coord[1],
+                            nIter = nIter,
                         )                                                       # [m], [°], [°]
 
                         # Replace current minimum if required ...
@@ -118,7 +134,15 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         midLon, midLat, maxDist = pyguymer3.geo.find_middle_of_locs(
             numpy.array(xpoints),
             numpy.array(ypoints),
-            pad = 12.0 * 1852.0,
+             angConv = 0.1,
+                conv = 10000.0,                                                 # 10 km
+               debug = debug,
+              method = "GeodesicCircle",
+                nAng = 9,
+               nIter = nIter,
+             nRefine = 6,                                                       # 156.25 m
+                 pad = 12.0 * 1852.0,
+            useSciPy = False,
         )                                                                       # [°], [°], [m]
 
         # Create figure ...
@@ -127,13 +151,23 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         # Create axis ...
         ax = pyguymer3.geo.add_axis(
             fg,
-            dist = maxDist,
-             lat = midLat,
-             lon = midLon,
+            add_coastlines = True,
+             add_gridlines = True,
+                     debug = debug,
+                      dist = maxDist,
+                       lat = midLat,
+                       lon = midLon,
+                     nIter = nIter,
+                 onlyValid = onlyValid,
+                    repair = repair,
         )
 
         # Configure axis ...
-        pyguymer3.geo.add_map_background(ax, resolution = "large8192px")
+        pyguymer3.geo.add_map_background(
+            ax,
+                 debug = debug,
+            resolution = "large8192px",
+        )
 
         # Plot points ...
         # NOTE: Default value of the optional keyword argument "s" (as of
@@ -178,5 +212,7 @@ def run(dirOut, /, *, country = "United Kingdom", steps = 50):
         # Optimize PNG ...
         pyguymer3.image.optimize_image(
             f"{dirOut}/{country}.png",
-            strip = True,
+              debug = debug,
+              strip = True,
+            timeout = timeout,
         )
