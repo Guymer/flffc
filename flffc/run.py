@@ -151,15 +151,16 @@ def run(
         # Create axis ...
         ax = pyguymer3.geo.add_axis(
             fg,
-            add_coastlines = True,
-             add_gridlines = True,
-                     debug = debug,
-                      dist = maxDist,
-                       lat = midLat,
-                       lon = midLon,
-                     nIter = nIter,
-                 onlyValid = onlyValid,
-                    repair = repair,
+              add_coastlines = True,
+               add_gridlines = True,
+                       debug = debug,
+                        dist = maxDist,
+                         lat = midLat,
+                         lon = midLon,
+                       nIter = nIter,
+                   onlyValid = onlyValid,
+                      repair = repair,
+            satellite_height = False,
         )
 
         # Configure axis ...
