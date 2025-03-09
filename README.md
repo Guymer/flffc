@@ -1,5 +1,7 @@
 # Find Location Furthest From Coast (FLFFC)
 
+!["mypy" GitHub Action Status](https://github.com/Guymer/flffc/actions/workflows/mypy.yaml/badge.svg) !["pylint" GitHub Action Status](https://github.com/Guymer/flffc/actions/workflows/pylint.yaml/badge.svg)
+
 This Python 3.x module contains all the functions required to calculate the location that is the furthest away from the coast in a particular country. It also contains a wrapper function to perform the job for you and save the answer as an image.
 
 ## Usage
