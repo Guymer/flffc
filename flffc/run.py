@@ -186,7 +186,7 @@ def run(
             xpoints,
             ypoints,
                     c = zpoints,
-                 cmap = matplotlib.colormaps["rainbow"],
+                 cmap = matplotlib.colormaps["turbo"],
             linewidth = 0.5,
                     s = pow(200.0 / steps, 2),
             transform = cartopy.crs.Geodetic(),
