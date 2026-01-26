@@ -169,8 +169,8 @@ def run(
         # Configure axis ...
         pyguymer3.geo.add_map_background(
             ax,
-                 debug = debug,
-            resolution = "large8192px",
+              debug = debug,
+            subName = "large8192px",
         )
 
         # Plot points ...
