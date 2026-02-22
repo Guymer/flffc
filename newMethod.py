@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+
+# Use the proper idiom in the main module ...
+# NOTE: See https://docs.python.org/3.12/library/multiprocessing.html#the-spawn-and-forkserver-start-methods
+if __name__ == "__main__":
+    # Import standard modules ...
+    import argparse
+    import copy
+    import gzip
+    import os
+    import pathlib
+
+    # Import special modules ...
+    try:
+        import cartopy
+        cartopy.config.update(
+            {
+                "cache_dir" : pathlib.PosixPath("~/.local/share/cartopy").expanduser(),
+            }
+        )
+    except:
+        raise Exception("\"cartopy\" is not installed; run \"pip install --user Cartopy\"") from None
+    try:
+        import geojson
+    except:
+        raise Exception("\"geojson\" is not installed; run \"pip install --user geojson\"") from None
+    try:
+        import matplotlib
+        matplotlib.rcParams.update(
+            {
+                       "axes.xmargin" : 0.01,
+                       "axes.ymargin" : 0.01,
+                            "backend" : "Agg",                                  # NOTE: See https://matplotlib.org/stable/gallery/user_interfaces/canvasagg.html
+                         "figure.dpi" : 300,
+                     "figure.figsize" : (9.6, 7.2),                             # NOTE: See https://github.com/Guymer/misc/blob/main/README.md#matplotlib-figure-sizes
+                          "font.size" : 8,
+                "image.interpolation" : "none",
+                     "image.resample" : False,
+            }
+        )
+        import matplotlib.pyplot
+    except:
+        raise Exception("\"matplotlib\" is not installed; run \"pip install --user matplotlib\"") from None
+    try:
+        import shapely
+        import shapely.geometry
+        import shapely.wkb
+    except:
+        raise Exception("\"shapely\" is not installed; run \"pip install --user Shapely\"") from None
+
+    # Import my modules ...
+    try:
+        import pyguymer3
+        import pyguymer3.geo
+        import pyguymer3.image
+    except:
+        raise Exception("\"pyguymer3\" is not installed; run \"pip install --user PyGuymer3\"") from None
+
+    # **************************************************************************
+
+    # Create argument parser and parse the arguments ...
+    parser = argparse.ArgumentParser(
+           allow_abbrev = False,
+            description = "Demonstrate a potential new method.",
+        formatter_class = argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--debug",
+        action = "store_true",
+          help = "print debug messages",
+    )
+    parser.add_argument(
+        "--eps",
+        default = 1.0e-12,
+           dest = "eps",
+           help = "the tolerance of the Vincenty formula iterations",
+           type = float,
+    )
+    parser.add_argument(
+        "--GSHHG-resolution",
+        choices = [
+            "c",                        # crude
+            "l",                        # low
+            "i",                        # intermediate
+            "h",                        # high
+            "f",                        # full
+        ],
+        default = "c",                  # crude
+           dest = "gshhgRes",
+           help = "the resolution of the GSHHG dataset",
+           type = str,
+    )
+    parser.add_argument(
+        "--nAng",
+        default = 361,
+           dest = "nAng",
+           help = "the number of angles around each circle",
+           type = int,
+    )
+    parser.add_argument(
+        "--nIter",
+        default = 1000000,
+           dest = "nIter",
+           help = "the maximum number of iterations (particularly the Vincenty formula)",
+           type = int,
+    )
+    parser.add_argument(
+        "--timeout",
+        default = 60.0,
+           help = "the timeout for any requests/subprocess calls (in seconds)",
+           type = float,
+    )
+    parser.add_argument(
+        "--tolerance",
+        default = 1.0e-10,
+           dest = "tol",
+           help = "the Euclidean distance that defines two points as being the same (in degrees)",
+           type = float,
+    )
+    args = parser.parse_args()
+
+    # **************************************************************************
+
+    # Create short-hands ...
+    distStep = 50                                                               # [km]
+    fill = 1.0e3                                                                # [m]
+    onlyValid = True
+    repair = True
+    simp = 100.0 / pyguymer3.RESOLUTION_OF_EARTH                                # [°]
+
+    # Create short-hand and make output folder if it is missing ...
+    dName1 = f"newOutput/gshhgRes={args.gshhgRes}"
+    dName2 = f"{dName1}/eps={args.eps:.2e}_fill={fill:.2e}_nAng={args.nAng:d}_nIter={args.nIter:d}_simp={simp:.2e}_tol={args.tol:.2e}"
+    if not os.path.exists(dName2):
+        os.makedirs(dName2)
+
+    # **************************************************************************
+
+    # Initialize list ...
+    polys = []
+
+    # Loop over records in the GSHHG Shapefile for the boundary between land and
+    # ocean at the user-requested resolution ...
+    for record in cartopy.io.shapereader.Reader(
+        cartopy.io.shapereader.gshhs(
+            level = 1,
+            scale = args.gshhgRes,
+        )
+    ).records():
+        # Skip bad records ...
+        if not hasattr(record, "geometry"):
+            continue
+
+        # Append Polgons to list ...
+        polys += pyguymer3.geo.extract_polys(
+            record.geometry,
+            onlyValid = onlyValid,
+               repair = repair,
+        )
+
+    # Convert list of Polygons to a MultiPolygon ...
+    multiPolys = shapely.geometry.multipolygon.MultiPolygon(polys)
+
+    # Save MultiPolygon ...
+    with gzip.open(f"{dName1}/coastline.wkb.gz", mode = "wb", compresslevel = 9) as gzObj:
+        gzObj.write(shapely.wkb.dumps(multiPolys))
+
+    # Save MultiPolygon ...
+    with open(f"{dName1}/coastline.geojson", "wt", encoding = "utf-8") as fObj:
+        geojson.dump(
+            multiPolys,
+            fObj,
+            ensure_ascii = False,
+                  indent = 4,
+               sort_keys = True,
+        )
+
+    # Clean up ...
+    del multiPolys
+
+    # **************************************************************************
+
+    # Loop over buffering steps ...
+    for iDist in range(1, 6):
+        # Create short-hands and skip this distance if the output files already
+        # exist ...
+        gName = f"{dName2}/dist={iDist * distStep:03d}km.geojson"
+        wName = f"{dName2}/dist={iDist * distStep:03d}km.wkb.gz"
+        if os.path.exists(gName) and os.path.exists(wName):
+            continue
+
+        print(f"Making \"{gName}\" and \"{wName}\" ...")
+
+        # **********************************************************************
+
+        # Initialize list ...
+        holes = []
+
+        # Loop over Polygons ...
+        for poly in polys:
+            # Loop over the Polygons in the buffer of the Polygon ...
+            # NOTE: Given how the buffer is made, we know that there aren't any
+            #       invalid Polygons, so don't bother checking for them.
+            for buffPoly in pyguymer3.geo.extract_polys(
+                pyguymer3.geo.buffer(
+                    poly.exterior,
+                    float(1000 * distStep),                                     # 50 km
+                            debug = args.debug,
+                              eps = args.eps,
+                             fill = fill,                                       # 1 km
+                        fillSpace = "GeodesicSpace",
+                    keepInteriors = True,
+                             nAng = args.nAng,
+                            nIter = args.nIter,
+                             simp = simp,                                       # ~100 m
+                              tol = args.tol,
+                ),
+                onlyValid = False,
+                   repair = False,
+            ):
+                # Loop over interior rings ...
+                for interior in buffPoly.interiors:
+                    # Convert LinearRing to Polygon and skip this hole if it is
+                    # outside the original Polygon ...
+                    hole = shapely.geometry.polygon.Polygon(interior)
+                    if hole.disjoint(poly):
+                        continue
+
+                    # Append Polygon to list ...
+                    holes.append(hole)
+
+        # Convert list of Polygons to a MultiPolygon ...
+        multiHoles = shapely.geometry.multipolygon.MultiPolygon(holes)
+
+        # Save MultiPolygon ...
+        with gzip.open(wName, mode = "wb", compresslevel = 9) as gzObj:
+            gzObj.write(shapely.wkb.dumps(multiHoles))
+
+        # Save MultiPolygon ...
+        with open(gName, "wt", encoding = "utf-8") as fObj:
+            geojson.dump(
+                multiHoles,
+                fObj,
+                ensure_ascii = False,
+                      indent = 4,
+                   sort_keys = True,
+            )
+
+        # Clean up ...
+        del multiHoles
+
+        # **********************************************************************
+
+        # Replace the old list of Polygons with the new list of Polygons and
+        # clean up ...
+        polys = copy.copy(holes)
+        del holes
