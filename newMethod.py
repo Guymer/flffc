@@ -122,7 +122,6 @@ if __name__ == "__main__":
     # **************************************************************************
 
     # Create short-hands ...
-    distStep = 50                                                               # [km]
     fill = 1.0e3                                                                # [m]
     onlyValid = True
     repair = True
@@ -181,106 +180,109 @@ if __name__ == "__main__":
     # **************************************************************************
 
     # Loop over buffering steps ...
-    for iDist in range(1, 6):
-        # Create short-hands and skip calculating this distance if the output
-        # files already exist and just load them ...
-        # NOTE: Given how the Polygons were made, we know that there aren't any
-        #       invalid Polygons, so don't bother checking for them.
-        gName = f"{dName2}/dist={iDist * distStep:03d}km.geojson"
-        wName = f"{dName2}/dist={iDist * distStep:03d}km.wkb.gz"
-        if os.path.exists(gName) and os.path.exists(wName):
-            with gzip.open(wName, mode = "rb") as gzObj:
-                polys = pyguymer3.geo.extract_polys(
-                    shapely.wkb.loads(gzObj.read()),
+    for distStep in [50, 10]:
+        # Loop over buffering distances ...
+        for dist in range(50, 250 + distStep, distStep):
+            # Create short-hands and skip calculating this distance if the
+            # output files already exist and just load them ...
+            # NOTE: Given how the Polygons were made, we know that there aren't
+            #       any invalid Polygons, so don't bother checking for them.
+            gName = f"{dName2}/dist={dist:03d}km.geojson"
+            wName = f"{dName2}/dist={dist:03d}km.wkb.gz"
+            if os.path.exists(gName) and os.path.exists(wName):
+                print(f"Loading \"{wName}\" ...")
+                with gzip.open(wName, mode = "rb") as gzObj:
+                    polys = pyguymer3.geo.extract_polys(
+                        shapely.wkb.loads(gzObj.read()),
+                        onlyValid = False,
+                           repair = False,
+                    )
+                continue
+
+            print(f"Making \"{wName}\" (and GeoJSON too) ...")
+
+            # ******************************************************************
+
+            # Initialize list ...
+            holes = []
+
+            # Create short-hands ...
+            nPolys = len(polys)                                                 # [#]
+            start = pyguymer3.now()
+
+            # Loop over Polygons ...
+            for iPoly, poly in enumerate(polys):
+                # Print progress ...
+                # NOTE: The progress string needs padding with extra spaces so
+                #       that the line is fully overwritten when it inevitably
+                #       gets shorter (as the remaining time gets shorter).
+                #       Assume that the longest it will ever be is
+                #       "???.???% (~??h ??m ??.?s still to go)" (which is 37
+                #       characters).
+                fraction = float(iPoly + 1) / float(nPolys)
+                durationSoFar = pyguymer3.now() - start
+                totalDuration = durationSoFar / fraction
+                remaining = (totalDuration - durationSoFar).total_seconds()     # [s]
+                progress = f"{100.0 * fraction:.3f}% (~{pyguymer3.convert_seconds_to_pretty_time(remaining)} still to go)"
+                print(f"  Buffering Polygons ... {progress:37s}", end = "\r")
+
+                # Loop over the Polygons in the buffer of the Polygon ...
+                # NOTE: Given how the buffer is made, we know that there aren't
+                #       any invalid Polygons, so don't bother checking for them.
+                for buffPoly in pyguymer3.geo.extract_polys(
+                    pyguymer3.geo.buffer(
+                        poly.exterior,
+                        float(1000 * distStep),                                 # N km
+                                debug = args.debug,
+                                  eps = args.eps,
+                                 fill = fill,                                   # 1 km
+                            fillSpace = "GeodesicSpace",
+                        keepInteriors = True,
+                                 nAng = args.nAng,
+                                nIter = args.nIter,
+                                 simp = simp,                                   # ~100 m
+                                  tol = args.tol,
+                    ),
                     onlyValid = False,
                        repair = False,
+                ):
+                    # Loop over interior rings ...
+                    for interior in buffPoly.interiors:
+                        # Convert LinearRing to Polygon and skip this hole if it
+                        # is outside the original Polygon ...
+                        hole = shapely.geometry.polygon.Polygon(interior)
+                        if hole.disjoint(poly):
+                            continue
+
+                        # Append Polygon to list ...
+                        holes.append(hole)
+
+            # Clear the line ...
+            print()
+
+            # Convert list of Polygons to a MultiPolygon ...
+            multiHoles = shapely.geometry.multipolygon.MultiPolygon(holes)
+
+            # Save MultiPolygon ...
+            with gzip.open(wName, mode = "wb", compresslevel = 9) as gzObj:
+                gzObj.write(shapely.wkb.dumps(multiHoles))
+
+            # Save MultiPolygon ...
+            with open(gName, "wt", encoding = "utf-8") as fObj:
+                geojson.dump(
+                    multiHoles,
+                    fObj,
+                    ensure_ascii = False,
+                          indent = 4,
+                       sort_keys = True,
                 )
-            continue
 
-        print(f"Making \"{wName}\" (and GeoJSON too) ...")
+            # Clean up ...
+            del multiHoles
 
-        # **********************************************************************
+            # ******************************************************************
 
-        # Initialize list ...
-        holes = []
-
-        # Create short-hands ...
-        nPolys = len(polys)                                                     # [#]
-        start = pyguymer3.now()
-
-        # Loop over Polygons ...
-        for iPoly, poly in enumerate(polys):
-            # Print progress ...
-            # NOTE: The progress string needs padding with extra spaces so that
-            #       the line is fully overwritten when it inevitably gets
-            #       shorter (as the remaining time gets shorter). Assume that
-            #       the longest it will ever be is
-            #       "???.???% (~??h ??m ??.?s still to go)" (which is 37
-            #       characters).
-            fraction = float(iPoly + 1) / float(nPolys)
-            durationSoFar = pyguymer3.now() - start
-            totalDuration = durationSoFar / fraction
-            remaining = (totalDuration - durationSoFar).total_seconds()         # [s]
-            progress = f"{100.0 * fraction:.3f}% (~{pyguymer3.convert_seconds_to_pretty_time(remaining)} still to go)"
-            print(f"  Buffering Polygons ... {progress:37s}", end = "\r")
-
-            # Loop over the Polygons in the buffer of the Polygon ...
-            # NOTE: Given how the buffer is made, we know that there aren't any
-            #       invalid Polygons, so don't bother checking for them.
-            for buffPoly in pyguymer3.geo.extract_polys(
-                pyguymer3.geo.buffer(
-                    poly.exterior,
-                    float(1000 * distStep),                                     # 50 km
-                            debug = args.debug,
-                              eps = args.eps,
-                             fill = fill,                                       # 1 km
-                        fillSpace = "GeodesicSpace",
-                    keepInteriors = True,
-                             nAng = args.nAng,
-                            nIter = args.nIter,
-                             simp = simp,                                       # ~100 m
-                              tol = args.tol,
-                ),
-                onlyValid = False,
-                   repair = False,
-            ):
-                # Loop over interior rings ...
-                for interior in buffPoly.interiors:
-                    # Convert LinearRing to Polygon and skip this hole if it is
-                    # outside the original Polygon ...
-                    hole = shapely.geometry.polygon.Polygon(interior)
-                    if hole.disjoint(poly):
-                        continue
-
-                    # Append Polygon to list ...
-                    holes.append(hole)
-
-        # Clear the line ...
-        print()
-
-        # Convert list of Polygons to a MultiPolygon ...
-        multiHoles = shapely.geometry.multipolygon.MultiPolygon(holes)
-
-        # Save MultiPolygon ...
-        with gzip.open(wName, mode = "wb", compresslevel = 9) as gzObj:
-            gzObj.write(shapely.wkb.dumps(multiHoles))
-
-        # Save MultiPolygon ...
-        with open(gName, "wt", encoding = "utf-8") as fObj:
-            geojson.dump(
-                multiHoles,
-                fObj,
-                ensure_ascii = False,
-                      indent = 4,
-                   sort_keys = True,
-            )
-
-        # Clean up ...
-        del multiHoles
-
-        # **********************************************************************
-
-        # Replace the old list of Polygons with the new list of Polygons and
-        # clean up ...
-        polys = copy.copy(holes)
-        del holes
+            # Replace the old list of Polygons with the new list of Polygons and
+            # clean up ...
+            polys = copy.copy(holes)
+            del holes
