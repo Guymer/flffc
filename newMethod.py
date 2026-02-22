@@ -182,11 +182,19 @@ if __name__ == "__main__":
 
     # Loop over buffering steps ...
     for iDist in range(1, 6):
-        # Create short-hands and skip this distance if the output files already
-        # exist ...
+        # Create short-hands and skip calculating this distance if the output
+        # files already exist and just load them ...
+        # NOTE: Given how the Polygons were made, we know that there aren't any
+        #       invalid Polygons, so don't bother checking for them.
         gName = f"{dName2}/dist={iDist * distStep:03d}km.geojson"
         wName = f"{dName2}/dist={iDist * distStep:03d}km.wkb.gz"
         if os.path.exists(gName) and os.path.exists(wName):
+            with gzip.open(wName, mode = "rb") as gzObj:
+                polys = pyguymer3.geo.extract_polys(
+                    shapely.wkb.loads(gzObj.read()),
+                    onlyValid = False,
+                       repair = False,
+                )
             continue
 
         print(f"Making \"{wName}\" (and GeoJSON too) ...")
