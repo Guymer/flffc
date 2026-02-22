@@ -189,15 +189,33 @@ if __name__ == "__main__":
         if os.path.exists(gName) and os.path.exists(wName):
             continue
 
-        print(f"Making \"{gName}\" and \"{wName}\" ...")
+        print(f"Making \"{wName}\" (and GeoJSON too) ...")
 
         # **********************************************************************
 
         # Initialize list ...
         holes = []
 
+        # Create short-hands ...
+        nPolys = len(polys)                                                     # [#]
+        start = pyguymer3.now()
+
         # Loop over Polygons ...
-        for poly in polys:
+        for iPoly, poly in enumerate(polys):
+            # Print progress ...
+            # NOTE: The progress string needs padding with extra spaces so that
+            #       the line is fully overwritten when it inevitably gets
+            #       shorter (as the remaining time gets shorter). Assume that
+            #       the longest it will ever be is
+            #       "???.???% (~??h ??m ??.?s still to go)" (which is 37
+            #       characters).
+            fraction = float(iPoly + 1) / float(nPolys)
+            durationSoFar = pyguymer3.now() - start
+            totalDuration = durationSoFar / fraction
+            remaining = (totalDuration - durationSoFar).total_seconds()         # [s]
+            progress = f"{100.0 * fraction:.3f}% (~{pyguymer3.convert_seconds_to_pretty_time(remaining)} still to go)"
+            print(f"  Buffering Polygons ... {progress:37s}", end = "\r")
+
             # Loop over the Polygons in the buffer of the Polygon ...
             # NOTE: Given how the buffer is made, we know that there aren't any
             #       invalid Polygons, so don't bother checking for them.
@@ -228,6 +246,9 @@ if __name__ == "__main__":
 
                     # Append Polygon to list ...
                     holes.append(hole)
+
+        # Clear the line ...
+        print()
 
         # Convert list of Polygons to a MultiPolygon ...
         multiHoles = shapely.geometry.multipolygon.MultiPolygon(holes)
