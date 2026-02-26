@@ -180,9 +180,21 @@ if __name__ == "__main__":
     # **************************************************************************
 
     # Loop over buffering steps ...
-    for distStep in [50, 10]:
+    for distStep in [250, 50, 10, 2]:
         # Loop over buffering distances ...
-        for dist in range(50, 250 + distStep, distStep):
+        for dist in range(distStep, 250 + distStep, distStep):
+            # Skip short buffering steps if they are a long away from the known
+            # solution ...
+            if distStep == 50:
+                if dist <   0 or dist > 250:
+                    continue
+            if distStep == 10:
+                if dist < 200 or dist > 250:
+                    continue
+            if distStep == 2:
+                if dist < 220 or dist > 230:
+                    continue
+
             # Create short-hands and skip calculating this distance if the
             # output files already exist and just load them ...
             # NOTE: Given how the Polygons were made, we know that there aren't
