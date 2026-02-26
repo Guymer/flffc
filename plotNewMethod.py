@@ -133,8 +133,8 @@ if __name__ == "__main__":
          10,
           2,
     ]                                                                           # [km]
-    midLat = 61.636429                                                          # [°]
-    midLon = 12.826858                                                          # [°]
+    midLat = 61.637344                                                          # [°]
+    midLon = 12.827752                                                          # [°]
     simp = 100.0 / pyguymer3.RESOLUTION_OF_EARTH                                # [°]
 
     # Create short-hands ...
@@ -233,6 +233,7 @@ if __name__ == "__main__":
 
             # Create short-hands and skip if the WKB is missing ...
             dName2 = f"{dName1}/eps={args.eps:.2e}_fill={fill:.2e}_nAng={args.nAng:d}_nIter={args.nIter:d}_simp={simp:.2e}_tol={args.tol:.2e}"
+            done = False
             wName = f"{dName2}/dist={dist:03d}km.wkb.gz"
             if not os.path.exists(wName):
                 continue
@@ -259,22 +260,28 @@ if __name__ == "__main__":
                 match len(relevantPolys):
                     case 0:
                         print(f"    There aren't any Polygons which are relevant - stopping looping over distance.")
-                        break
+
+                        # Set flag ...
+                        done = True
                     case 1:
                         print(f"    The centroid is at ({relevantPolys[0].centroid.x:.6f}°,{relevantPolys[0].centroid.y:.6f}°).")
+
+                        # Plot Polygon ...
+                        ax.add_geometries(
+                            relevantPolys,
+                            cartopy.crs.PlateCarree(),
+                            edgecolor = f"C{iGshhgRes:d}",
+                            facecolor = "none",
+                            linewidth = 1.0,
+                        )
                     case _:
                         raise Exception(f"there are {len(relevantPolys):,d} Polygons which are relevant") from None
-
-                # Plot Polygon ...
-                ax.add_geometries(
-                    relevantPolys,
-                    cartopy.crs.PlateCarree(),
-                    edgecolor = f"C{iGshhgRes:d}",
-                    facecolor = "none",
-                    linewidth = 1.0,
-                )
                 del relevantPolys
             del polys
+
+            # Stop looping if done ...
+            if done:
+                break
 
     # Plot the starting location ...
     # NOTE: As of 5/Dec/2023, the default "zorder" of the coastlines is 1.5, the
