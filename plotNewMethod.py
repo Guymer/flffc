@@ -1,0 +1,288 @@
+#!/usr/bin/env python3
+
+# Use the proper idiom in the main module ...
+# NOTE: See https://docs.python.org/3.12/library/multiprocessing.html#the-spawn-and-forkserver-start-methods
+if __name__ == "__main__":
+    # Import standard modules ...
+    import argparse
+    import gzip
+    import os
+    import pathlib
+    import subprocess
+    import sysconfig
+
+    # Import special modules ...
+    try:
+        import cartopy
+        cartopy.config.update(
+            {
+                "cache_dir" : pathlib.PosixPath("~/.local/share/cartopy").expanduser(),
+            }
+        )
+    except:
+        raise Exception("\"cartopy\" is not installed; run \"pip install --user Cartopy\"") from None
+    try:
+        import matplotlib
+        matplotlib.rcParams.update(
+            {
+                       "axes.xmargin" : 0.01,
+                       "axes.ymargin" : 0.01,
+                            "backend" : "Agg",                                  # NOTE: See https://matplotlib.org/stable/gallery/user_interfaces/canvasagg.html
+                         "figure.dpi" : 300,
+                     "figure.figsize" : (9.6, 7.2),                             # NOTE: See https://github.com/Guymer/misc/blob/main/README.md#matplotlib-figure-sizes
+                          "font.size" : 8,
+                "image.interpolation" : "none",
+                     "image.resample" : False,
+            }
+        )
+        import matplotlib.pyplot
+    except:
+        raise Exception("\"matplotlib\" is not installed; run \"pip install --user matplotlib\"") from None
+    try:
+        import shapely
+        import shapely.wkb
+    except:
+        raise Exception("\"shapely\" is not installed; run \"pip install --user Shapely\"") from None
+
+    # Import my modules ...
+    try:
+        import pyguymer3
+        import pyguymer3.geo
+        import pyguymer3.image
+    except:
+        raise Exception("\"pyguymer3\" is not installed; run \"pip install --user PyGuymer3\"") from None
+
+    # **************************************************************************
+
+    # Create argument parser and parse the arguments ...
+    parser = argparse.ArgumentParser(
+           allow_abbrev = False,
+            description = "foobar",
+        formatter_class = argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--debug",
+        action = "store_true",
+          dest = "debug",
+          help = "print debug messages",
+    )
+    parser.add_argument(
+        "--eps",
+        default = 1.0e-12,
+           dest = "eps",
+           help = "the tolerance of the Vincenty formula iterations",
+           type = float,
+    )
+    parser.add_argument(
+        "--nAng",
+        default = 361,
+           dest = "nAng",
+           help = "the number of angles around each circle",
+           type = int,
+    )
+    parser.add_argument(
+        "--nIter",
+        default = 1000000,
+           dest = "nIter",
+           help = "the maximum number of iterations (particularly the Vincenty formula)",
+           type = int,
+    )
+    parser.add_argument(
+        "--thunderforest-key",
+        default = None,
+           dest = "thunderforestKey",
+           help = "the API key for Thunderforest",
+           type = str,
+    )
+    parser.add_argument(
+        "--thunderforest-map",
+        default = "atlas",
+           dest = "thunderforestMap",
+           help = "the name of the Thunderforest map to use (see https://www.thunderforest.com/maps/)",
+           type = str,
+    )
+    parser.add_argument(
+        "--tile-scale",
+        default = 1,
+           dest = "tileScale",
+           help = "scale of the tiles",
+           type = int,
+    )
+    parser.add_argument(
+        "--timeout",
+        default = 60.0,
+           help = "the timeout for any requests/subprocess calls (in seconds)",
+           type = float,
+    )
+    parser.add_argument(
+        "--tolerance",
+        default = 1.0e-10,
+           dest = "tol",
+           help = "the Euclidean distance that defines two points as being the same (in degrees)",
+           type = float,
+    )
+    args = parser.parse_args()
+
+    # **************************************************************************
+
+    # Create short-hands ...
+    fill = 1.0e3                                                                # [m]
+    maxDist = 25.0e3                                                            # [m]
+    midLat = 61.636429                                                          # [°]
+    midLon = 12.826858                                                          # [°]
+    simp = 100.0 / pyguymer3.RESOLUTION_OF_EARTH                                # [°]
+
+    # Create short-hands ...
+    pnt = shapely.geometry.point.Point(midLon, midLat)
+    fov = pyguymer3.geo.buffer(
+        pnt,
+        maxDist,
+        debug = args.debug,
+          eps = args.eps,
+         fill = -1.0,
+         nAng = 361,
+        nIter = args.nIter,
+         simp = -1.0,
+          tol = args.tol,
+    )
+
+    # **************************************************************************
+
+    # Create figure ...
+    fg = matplotlib.pyplot.figure(figsize = (7.2, 7.2))
+
+    # Create axis ...
+    ax = pyguymer3.geo.add_axis(
+        fg,
+        add_coastlines = False,
+         add_gridlines = True,
+                 debug = args.debug,
+                  dist = maxDist,
+                   eps = args.eps,
+                   fov = fov,
+                   lat = midLat,
+                   lon = midLon,
+                 nIter = args.nIter,
+                   tol = args.tol,
+    )
+
+    # Calculate the regrid shape based off the resolution and the size of the
+    # figure, as well as a safety factor (remembering Nyquist) ...
+    regrid_shape = (
+        round(2.0 * fg.get_figwidth() * fg.get_dpi()),
+        round(2.0 * fg.get_figheight() * fg.get_dpi()),
+    )                                                                           # [px], [px]
+
+    # Calculate the resolution depending on the half-width, or the half-height,
+    # of the figure and the maximum distance, as well as a safety factor
+    # (remembering Nyquist) ...
+    res = 2.0 * min(
+        2.0 * maxDist / (fg.get_figwidth() * fg.get_dpi()),
+        2.0 * maxDist / (fg.get_figheight() * fg.get_dpi()),
+    )                                                                           # [m/px]
+
+    # Add OSM tiles background using Cartopy ...
+    pyguymer3.geo.add_Cartopy_tiles(
+        ax,
+        midLat,
+        res,
+                   debug = args.debug,
+           interpolation = "gaussian",
+            regrid_shape = regrid_shape,
+        thunderforestKey = args.thunderforestKey,
+        thunderforestMap = args.thunderforestMap,
+               tileScale = args.tileScale,
+                       z = None,
+    )
+
+    # **************************************************************************
+
+    # Loop over GSHHG resolutions ...
+    for iGshhgRes, gshhgRes in enumerate(
+        [
+            "c",                        # crude
+            "l",                        # low
+            "i",                        # intermediate
+            "h",                        # high
+            "f",                        # full
+        ]
+    ):
+        print(f"Processing GSHHG resolution \"{gshhgRes}\" ...")
+
+        # Create short-hand ...
+        dName1 = f"newOutput/gshhgRes={gshhgRes}"
+
+        # Loop over distances ...
+        for dist in range(100, 250 + 10, 10):
+            print(f"  Processing distance {dist:d} km ...")
+
+            # Create short-hands and skip if the WKB is missing ...
+            dName2 = f"{dName1}/eps={args.eps:.2e}_fill={fill:.2e}_nAng={args.nAng:d}_nIter={args.nIter:d}_simp={simp:.2e}_tol={args.tol:.2e}"
+            wName = f"{dName2}/dist={dist:03d}km.wkb.gz"
+            if not os.path.exists(wName):
+                continue
+
+            # Load Polygons ...
+            # NOTE: Given how the Polygons were made, we know that there aren't
+            #       any invalid Polygons, so don't bother checking for them.
+            with gzip.open(wName, mode = "rb") as gzObj:
+                polys = pyguymer3.geo.extract_polys(
+                    shapely.wkb.loads(gzObj.read()),
+                    onlyValid = False,
+                       repair = False,
+                )
+
+            # Create a subset of Polygons which contain the Point ...
+            relevantPolys = []
+            for poly in polys:
+                if poly.contains(pnt):
+                    relevantPolys.append(poly.intersection(fov))
+            del polys
+
+            # Skip this distance if there aren't any Polygons ...
+            match len(relevantPolys):
+                case 0:
+                    print(f"    There aren't any Polygons which are relevant - stopping looping over distance.")
+                    break
+                case 1:
+                    print(f"    The centroid is at ({relevantPolys[0].centroid.x:.6f}°,{relevantPolys[0].centroid.y:.6f}°).")
+                case _:
+                    raise Exception(f"there are {len(relevantPolys):,d} Polygons which are relevant") from None
+
+            # Plot Polygon ...
+            ax.add_geometries(
+                relevantPolys,
+                cartopy.crs.PlateCarree(),
+                edgecolor = f"C{iGshhgRes:d}",
+                facecolor = "none",
+                linewidth = 1.0,
+            )
+
+    # Plot the starting location ...
+    # NOTE: As of 5/Dec/2023, the default "zorder" of the coastlines is 1.5, the
+    #       default "zorder" of the gridlines is 2.0 and the default "zorder" of
+    #       the scattered points is 1.0.
+    ax.scatter(
+        [midLon],
+        [midLat],
+        edgecolor = "black",
+        facecolor = "gold",
+           marker = "*",
+        transform = cartopy.crs.Geodetic(),
+           zorder = 5.0,
+    )
+
+    # Configure figure ...
+    fg.tight_layout()
+
+    # Save figure ...
+    fg.savefig("plotNewMethod.png")
+    matplotlib.pyplot.close(fg)
+
+    # Optimize PNG ...
+    pyguymer3.image.optimise_image(
+        "plotNewMethod.png",
+          debug = args.debug,
+          strip = True,
+        timeout = args.timeout,
+    )
