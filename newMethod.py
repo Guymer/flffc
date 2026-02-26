@@ -181,6 +181,9 @@ if __name__ == "__main__":
 
     # Loop over buffering steps ...
     for distStep in [250, 50, 10, 2]:
+        # Set the list of Polygons to be the un-buffered list of Polygons ...
+        buffPolys = copy.copy(polys)
+
         # Loop over buffering distances ...
         for dist in range(distStep, 250 + distStep, distStep):
             # Skip short buffering steps if they are a long away from the known
@@ -204,7 +207,7 @@ if __name__ == "__main__":
             if os.path.exists(gName) and os.path.exists(wName):
                 print(f"Loading \"{wName}\" ...")
                 with gzip.open(wName, mode = "rb") as gzObj:
-                    polys = pyguymer3.geo.extract_polys(
+                    buffPolys = pyguymer3.geo.extract_polys(
                         shapely.wkb.loads(gzObj.read()),
                         onlyValid = False,
                            repair = False,
@@ -219,11 +222,11 @@ if __name__ == "__main__":
             holes = []
 
             # Create short-hands ...
-            nPolys = len(polys)                                                 # [#]
+            nPolys = len(buffPolys)                                             # [#]
             start = pyguymer3.now()
 
             # Loop over Polygons ...
-            for iPoly, poly in enumerate(polys):
+            for iPoly, poly in enumerate(buffPolys):
                 # Print progress ...
                 # NOTE: The progress string needs padding with extra spaces so
                 #       that the line is fully overwritten when it inevitably
@@ -296,5 +299,5 @@ if __name__ == "__main__":
 
             # Replace the old list of Polygons with the new list of Polygons and
             # clean up ...
-            polys = copy.copy(holes)
+            buffPolys = copy.copy(holes)
             del holes
