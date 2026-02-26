@@ -127,73 +127,88 @@ if __name__ == "__main__":
 
     # Create short-hands ...
     fill = 1.0e3                                                                # [m]
-    maxDist = 25.0e3                                                            # [m]
+    maxDists = [
+        250,
+         50,
+         10,
+          2,
+    ]                                                                           # [km]
     midLat = 61.636429                                                          # [°]
     midLon = 12.826858                                                          # [°]
     simp = 100.0 / pyguymer3.RESOLUTION_OF_EARTH                                # [°]
 
     # Create short-hands ...
     pnt = shapely.geometry.point.Point(midLon, midLat)
-    fov = pyguymer3.geo.buffer(
-        pnt,
-        maxDist,
-        debug = args.debug,
-          eps = args.eps,
-         fill = -1.0,
-         nAng = 361,
-        nIter = args.nIter,
-         simp = -1.0,
-          tol = args.tol,
-    )
+    fovs = [
+        pyguymer3.geo.buffer(
+            pnt,
+            float(1000 * maxDist),
+            debug = args.debug,
+              eps = args.eps,
+             fill = -1.0,
+             nAng = 361,
+            nIter = args.nIter,
+             simp = -1.0,
+              tol = args.tol,
+        ) for maxDist in maxDists
+    ]
 
     # **************************************************************************
 
     # Create figure ...
-    fg = matplotlib.pyplot.figure(figsize = (7.2, 7.2))
+    fg = matplotlib.pyplot.figure(figsize = (len(maxDists) * 7.2, 7.2))
 
     # Create axis ...
-    ax = pyguymer3.geo.add_axis(
-        fg,
-        add_coastlines = False,
-         add_gridlines = True,
-                 debug = args.debug,
-                  dist = maxDist,
-                   eps = args.eps,
-                   fov = fov,
-                   lat = midLat,
-                   lon = midLon,
-                 nIter = args.nIter,
-                   tol = args.tol,
-    )
+    axs = [
+        pyguymer3.geo.add_axis(
+            fg,
+            add_coastlines = False,
+             add_gridlines = True,
+                     debug = args.debug,
+                      dist = float(1000 * maxDist),
+                       eps = args.eps,
+                       fov = fov,
+                     index = i + 1,
+                       lat = midLat,
+                       lon = midLon,
+                     ncols = len(maxDists),
+                     nIter = args.nIter,
+                     nrows = 1,
+                       tol = args.tol,
+        ) for i, (fov, maxDist) in enumerate(zip(fovs, maxDists, strict = True))
+    ]
 
     # Calculate the regrid shape based off the resolution and the size of the
     # figure, as well as a safety factor (remembering Nyquist) ...
     regrid_shape = (
-        round(2.0 * fg.get_figwidth() * fg.get_dpi()),
+        round(2.0 * fg.get_figwidth() * fg.get_dpi() / float(len(maxDists))),
         round(2.0 * fg.get_figheight() * fg.get_dpi()),
     )                                                                           # [px], [px]
 
     # Calculate the resolution depending on the half-width, or the half-height,
     # of the figure and the maximum distance, as well as a safety factor
     # (remembering Nyquist) ...
-    res = 2.0 * min(
-        2.0 * maxDist / (fg.get_figwidth() * fg.get_dpi()),
-        2.0 * maxDist / (fg.get_figheight() * fg.get_dpi()),
-    )                                                                           # [m/px]
+    ress = [
+        2.0 * min(
+            2.0 * float(1000 * maxDist) / (fg.get_figwidth() * fg.get_dpi() / float(len(maxDists))),
+            2.0 * float(1000 * maxDist) / (fg.get_figheight() * fg.get_dpi()),
+        ) for maxDist in maxDists
+    ]                                                                           # [m/px]
 
     # Add OSM tiles background using Cartopy ...
-    pyguymer3.geo.add_Cartopy_tiles(
-        ax,
-        midLat,
-        res,
-                   debug = args.debug,
-           interpolation = "gaussian",
-            regrid_shape = regrid_shape,
-        thunderforestKey = args.thunderforestKey,
-        thunderforestMap = args.thunderforestMap,
-               tileScale = args.tileScale,
-                       z = None,
-    )
+    for ax, res in zip(axs, ress, strict = True):
+        pyguymer3.geo.add_Cartopy_tiles(
+            ax,
+            midLat,
+            res,
+                       debug = args.debug,
+               interpolation = "gaussian",
+                regrid_shape = regrid_shape,
+            thunderforestKey = args.thunderforestKey,
+            thunderforestMap = args.thunderforestMap,
+                   tileScale = args.tileScale,
+                           z = None,
+        )
 
     # **************************************************************************
 
@@ -213,7 +228,7 @@ if __name__ == "__main__":
         dName1 = f"newOutput/gshhgRes={gshhgRes}"
 
         # Loop over distances ...
-        for dist in range(100, 250 + 10, 10):
+        for dist in range(50, 250 + 2, 2):
             print(f"  Processing distance {dist:d} km ...")
 
             # Create short-hands and skip if the WKB is missing ...
@@ -250,29 +265,36 @@ if __name__ == "__main__":
                     raise Exception(f"there are {len(relevantPolys):,d} Polygons which are relevant") from None
 
             # Plot Polygon ...
-            ax.add_geometries(
-                relevantPolys,
-                cartopy.crs.PlateCarree(),
-                edgecolor = f"C{iGshhgRes:d}",
-                facecolor = "none",
-                linewidth = 1.0,
-            )
+            for ax in axs:
+                ax.add_geometries(
+                    relevantPolys,
+                    cartopy.crs.PlateCarree(),
+                    edgecolor = f"C{iGshhgRes:d}",
+                    facecolor = "none",
+                    linewidth = 1.0,
+                )
 
     # Plot the starting location ...
     # NOTE: As of 5/Dec/2023, the default "zorder" of the coastlines is 1.5, the
     #       default "zorder" of the gridlines is 2.0 and the default "zorder" of
     #       the scattered points is 1.0.
-    ax.scatter(
-        [midLon],
-        [midLat],
-        edgecolor = "black",
-        facecolor = "gold",
-           marker = "*",
-        transform = cartopy.crs.Geodetic(),
-           zorder = 5.0,
-    )
+    for ax in axs:
+        ax.scatter(
+            [midLon],
+            [midLat],
+            edgecolor = "black",
+            facecolor = "gold",
+               marker = "*",
+            transform = cartopy.crs.Geodetic(),
+               zorder = 5.0,
+        )
+
+    # Configure axis ...
+    for ax, maxDist in zip(axs, maxDists, strict = True):
+        ax.set_title(f"{maxDist:d} km")
 
     # Configure figure ...
+    fg.suptitle(f"({midLon:.6f}°,{midLat:.6f}°)")
     fg.tight_layout()
 
     # Save figure ...
