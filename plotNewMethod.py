@@ -247,25 +247,25 @@ if __name__ == "__main__":
                        repair = False,
                 )
 
-            # Create a subset of Polygons which contain the Point ...
-            relevantPolys = []
-            for poly in polys:
-                if poly.contains(pnt):
-                    relevantPolys.append(poly.intersection(fov))
-            del polys
+            # Loop over sub-plots ...
+            for ax, fov in zip(axs, fovs, strict = True):
+                # Create a subset of Polygons which contain the Point ...
+                relevantPolys = []
+                for poly in polys:
+                    if poly.contains(pnt):
+                        relevantPolys.append(poly.intersection(fov))
 
-            # Skip this distance if there aren't any Polygons ...
-            match len(relevantPolys):
-                case 0:
-                    print(f"    There aren't any Polygons which are relevant - stopping looping over distance.")
-                    break
-                case 1:
-                    print(f"    The centroid is at ({relevantPolys[0].centroid.x:.6f}°,{relevantPolys[0].centroid.y:.6f}°).")
-                case _:
-                    raise Exception(f"there are {len(relevantPolys):,d} Polygons which are relevant") from None
+                # Skip this distance if there aren't any Polygons ...
+                match len(relevantPolys):
+                    case 0:
+                        print(f"    There aren't any Polygons which are relevant - stopping looping over distance.")
+                        break
+                    case 1:
+                        print(f"    The centroid is at ({relevantPolys[0].centroid.x:.6f}°,{relevantPolys[0].centroid.y:.6f}°).")
+                    case _:
+                        raise Exception(f"there are {len(relevantPolys):,d} Polygons which are relevant") from None
 
-            # Plot Polygon ...
-            for ax in axs:
+                # Plot Polygon ...
                 ax.add_geometries(
                     relevantPolys,
                     cartopy.crs.PlateCarree(),
@@ -273,6 +273,8 @@ if __name__ == "__main__":
                     facecolor = "none",
                     linewidth = 1.0,
                 )
+                del relevantPolys
+            del polys
 
     # Plot the starting location ...
     # NOTE: As of 5/Dec/2023, the default "zorder" of the coastlines is 1.5, the
