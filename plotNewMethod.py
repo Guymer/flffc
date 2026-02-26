@@ -254,6 +254,7 @@ if __name__ == "__main__":
                 relevantPolys = []
                 for poly in polys:
                     if poly.contains(pnt):
+                        print(f"    A centroid is at ({poly.centroid.x:.6f}°,{poly.centroid.y:.6f}°).")
                         relevantPolys.append(poly.intersection(fov))
 
                 # Skip this distance if there aren't any Polygons ...
@@ -264,8 +265,6 @@ if __name__ == "__main__":
                         # Set flag ...
                         done = True
                     case 1:
-                        print(f"    The centroid is at ({relevantPolys[0].centroid.x:.6f}°,{relevantPolys[0].centroid.y:.6f}°).")
-
                         # Plot Polygon ...
                         ax.add_geometries(
                             relevantPolys,
