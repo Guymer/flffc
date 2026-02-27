@@ -77,6 +77,13 @@ if __name__ == "__main__":
            type = float,
     )
     parser.add_argument(
+        "--fill-factor",
+        default = 0.01,
+           dest = "fillFact",
+           help = "the multiplication factor to fill shapes by, relative to the buffering distance",
+           type = float,
+    )
+    parser.add_argument(
         "--GSHHG-resolution",
         choices = [
             "c",                        # crude
@@ -105,6 +112,20 @@ if __name__ == "__main__":
            type = int,
     )
     parser.add_argument(
+        "--RAM-limit",
+        default = 1073741824,
+           dest = "ramLimit",
+           help = "the maximum RAM usage of each \"large\" array (in bytes)",
+           type = int,
+    )
+    parser.add_argument(
+        "--simplification-factor",
+        default = 0.0001,
+           dest = "simpFact",
+           help = "the multiplication factor to simplify shapes by, relative to the buffering distance",
+           type = float,
+    )
+    parser.add_argument(
         "--timeout",
         default = 60.0,
            help = "the timeout for any requests/subprocess calls (in seconds)",
@@ -122,14 +143,12 @@ if __name__ == "__main__":
     # **************************************************************************
 
     # Create short-hands ...
-    fill = 1.0e3                                                                # [m]
     onlyValid = True
     repair = True
-    simp = 100.0 / pyguymer3.RESOLUTION_OF_EARTH                                # [°]
 
-    # Create short-hand and make output folder if it is missing ...
+    # Create short-hands and make output folder if it is missing ...
     dName1 = f"newOutput/gshhgRes={args.gshhgRes}"
-    dName2 = f"{dName1}/eps={args.eps:.2e}_fill={fill:.2e}_nAng={args.nAng:d}_nIter={args.nIter:d}_simp={simp:.2e}_tol={args.tol:.2e}"
+    dName2 = f"{dName1}/eps={args.eps:.2e}_fillFact=×{args.fillFact:.2e}_nAng={args.nAng:d}_nIter={args.nIter:d}_simpFact=×{args.simpFact:.2e}_tol={args.tol:.2e}°"
     if not os.path.exists(dName2):
         os.makedirs(dName2)
 
@@ -161,18 +180,20 @@ if __name__ == "__main__":
     multiPolys = shapely.geometry.multipolygon.MultiPolygon(polys)
 
     # Save MultiPolygon ...
-    with gzip.open(f"{dName1}/coastline.wkb.gz", mode = "wb", compresslevel = 9) as gzObj:
-        gzObj.write(shapely.wkb.dumps(multiPolys))
+    if not os.path.exists(f"{dName1}/coastline.wkb.gz"):
+        with gzip.open(f"{dName1}/coastline.wkb.gz", mode = "wb", compresslevel = 9) as gzObj:
+            gzObj.write(shapely.wkb.dumps(multiPolys))
 
     # Save MultiPolygon ...
-    with open(f"{dName1}/coastline.geojson", "wt", encoding = "utf-8") as fObj:
-        geojson.dump(
-            multiPolys,
-            fObj,
-            ensure_ascii = False,
-                  indent = 4,
-               sort_keys = True,
-        )
+    if not os.path.exists(f"{dName1}/coastline.geojson"):
+        with open(f"{dName1}/coastline.geojson", "wt", encoding = "utf-8") as fObj:
+            geojson.dump(
+                multiPolys,
+                fObj,
+                ensure_ascii = False,
+                      indent = 4,
+                   sort_keys = True,
+            )
 
     # Clean up ...
     del multiPolys
@@ -180,7 +201,16 @@ if __name__ == "__main__":
     # **************************************************************************
 
     # Loop over buffering steps ...
-    for distStep in [250, 50, 10, 2]:
+    for distStep in [
+        250,
+         50,
+         10,
+          2,
+    ]:
+        # Create short-hands ...
+        fill = args.fillFact * float(1000 * distStep)                           # [m]
+        simp = args.simpFact * float(1000 * distStep) / pyguymer3.RESOLUTION_OF_EARTH   # [°]
+
         # Set the list of Polygons to be the un-buffered list of Polygons ...
         buffPolys = copy.copy(polys)
 
@@ -247,15 +277,16 @@ if __name__ == "__main__":
                 for buffPoly in pyguymer3.geo.extract_polys(
                     pyguymer3.geo.buffer(
                         poly.exterior,
-                        float(1000 * distStep),                                 # N km
+                        float(1000 * distStep),
                                 debug = args.debug,
                                   eps = args.eps,
-                                 fill = fill,                                   # 1 km
+                                 fill = fill,
                             fillSpace = "GeodesicSpace",
                         keepInteriors = True,
                                  nAng = args.nAng,
                                 nIter = args.nIter,
-                                 simp = simp,                                   # ~100 m
+                             ramLimit = args.ramLimit,
+                                 simp = simp,
                                   tol = args.tol,
                     ),
                     onlyValid = False,

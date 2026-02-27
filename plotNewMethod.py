@@ -74,6 +74,13 @@ if __name__ == "__main__":
            type = float,
     )
     parser.add_argument(
+        "--fill-factor",
+        default = 0.01,
+           dest = "fillFact",
+           help = "the multiplication factor to fill shapes by, relative to the buffering distance",
+           type = float,
+    )
+    parser.add_argument(
         "--nAng",
         default = 361,
            dest = "nAng",
@@ -86,6 +93,20 @@ if __name__ == "__main__":
            dest = "nIter",
            help = "the maximum number of iterations (particularly the Vincenty formula)",
            type = int,
+    )
+    parser.add_argument(
+        "--RAM-limit",
+        default = 1073741824,
+           dest = "ramLimit",
+           help = "the maximum RAM usage of each \"large\" array (in bytes)",
+           type = int,
+    )
+    parser.add_argument(
+        "--simplification-factor",
+        default = 0.0001,
+           dest = "simpFact",
+           help = "the multiplication factor to simplify shapes by, relative to the buffering distance",
+           type = float,
     )
     parser.add_argument(
         "--thunderforest-key",
@@ -126,16 +147,15 @@ if __name__ == "__main__":
     # **************************************************************************
 
     # Create short-hands ...
-    fill = 1.0e3                                                                # [m]
     maxDists = [
-        250,
-         50,
-         10,
-          2,
+        1250,
+         250,
+          50,
+          10,
+           2,
     ]                                                                           # [km]
     midLat = 61.637344                                                          # [°]
     midLon = 12.827752                                                          # [°]
-    simp = 100.0 / pyguymer3.RESOLUTION_OF_EARTH                                # [°]
 
     # Create short-hands ...
     pnt = shapely.geometry.point.Point(midLon, midLat)
@@ -143,13 +163,14 @@ if __name__ == "__main__":
         pyguymer3.geo.buffer(
             pnt,
             float(1000 * maxDist),
-            debug = args.debug,
-              eps = args.eps,
-             fill = -1.0,
-             nAng = 361,
-            nIter = args.nIter,
-             simp = -1.0,
-              tol = args.tol,
+               debug = args.debug,
+                 eps = args.eps,
+                fill = -1.0,
+                nAng = 361,
+               nIter = args.nIter,
+            ramLimit = args.ramLimit,
+                simp = -1.0,
+                 tol = args.tol,
         ) for maxDist in maxDists
     ]
 
@@ -232,7 +253,7 @@ if __name__ == "__main__":
             print(f"  Processing distance {dist:d} km ...")
 
             # Create short-hands and skip if the WKB is missing ...
-            dName2 = f"{dName1}/eps={args.eps:.2e}_fill={fill:.2e}_nAng={args.nAng:d}_nIter={args.nIter:d}_simp={simp:.2e}_tol={args.tol:.2e}"
+            dName2 = f"{dName1}/eps={args.eps:.2e}_fillFact=×{args.fillFact:.2e}_nAng={args.nAng:d}_nIter={args.nIter:d}_simpFact=×{args.simpFact:.2e}_tol={args.tol:.2e}°"
             done = False
             wName = f"{dName2}/dist={dist:03d}km.wkb.gz"
             if not os.path.exists(wName):
