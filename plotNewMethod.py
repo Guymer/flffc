@@ -8,6 +8,7 @@ if __name__ == "__main__":
     import gzip
     import os
     import pathlib
+    import shutil
     import subprocess
     import sysconfig
 
@@ -61,6 +62,12 @@ if __name__ == "__main__":
         formatter_class = argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
+        "--chunksize",
+        default = 1048576,
+           help = "the size of the chunks of any files which are read in (in bytes)",
+           type = int,
+    )
+    parser.add_argument(
         "--debug",
         action = "store_true",
           dest = "debug",
@@ -74,11 +81,32 @@ if __name__ == "__main__":
            type = float,
     )
     parser.add_argument(
+        "--exiftool-path",
+        default = shutil.which("exiftool"),
+           dest = "exiftoolPath",
+           help = "the path to the \"exiftool\" binary",
+           type = str,
+    )
+    parser.add_argument(
         "--fill-factor",
         default = 0.01,
            dest = "fillFact",
            help = "the multiplication factor to fill shapes by, relative to the buffering distance",
            type = float,
+    )
+    parser.add_argument(
+        "--gifsicle-path",
+        default = shutil.which("gifsicle"),
+           dest = "gifsiclePath",
+           help = "the path to the \"gifsicle\" binary",
+           type = str,
+    )
+    parser.add_argument(
+        "--jpegtran-path",
+        default = shutil.which("jpegtran"),
+           dest = "jpegtranPath",
+           help = "the path to the \"jpegtran\" binary",
+           type = str,
     )
     parser.add_argument(
         "--nAng",
@@ -93,6 +121,13 @@ if __name__ == "__main__":
            dest = "nIter",
            help = "the maximum number of iterations (particularly the Vincenty formula)",
            type = int,
+    )
+    parser.add_argument(
+        "--optipng-path",
+        default = shutil.which("optipng"),
+           dest = "optipngPath",
+           help = "the path to the \"optipng\" binary",
+           type = str,
     )
     parser.add_argument(
         "--RAM-limit",
@@ -156,6 +191,8 @@ if __name__ == "__main__":
     ]                                                                           # [km]
     midLat = 61.637344                                                          # [°]
     midLon = 12.827752                                                          # [°]
+    onlyValid = True
+    repair = True
 
     # Create short-hands ...
     pnt = shapely.geometry.point.Point(midLon, midLat)
@@ -195,6 +232,9 @@ if __name__ == "__main__":
                      ncols = len(maxDists),
                      nIter = args.nIter,
                      nrows = 1,
+                 onlyValid = onlyValid,
+                  ramLimit = args.ramLimit,
+                    repair = repair,
                        tol = args.tol,
         ) for i, (fov, maxDist) in enumerate(zip(fovs, maxDists, strict = True))
     ]
@@ -270,13 +310,15 @@ if __name__ == "__main__":
                 )
 
             # Loop over sub-plots ...
-            for ax, fov in zip(axs, fovs, strict = True):
+            for ax, fov, maxDist in zip(axs, fovs, maxDists, strict = True):
                 # Create a subset of Polygons which contain the Point ...
                 relevantPolys = []
+                relevantPolysClipped = []
                 for poly in polys:
                     if poly.contains(pnt):
                         print(f"    A centroid is at ({poly.centroid.x:.6f}°,{poly.centroid.y:.6f}°).")
-                        relevantPolys.append(poly.intersection(fov))
+                        relevantPolys.append(poly)
+                        relevantPolysClipped.append(poly.intersection(fov))
 
                 # Check how many Polygons contain the Point ...
                 match len(relevantPolys):
@@ -288,15 +330,75 @@ if __name__ == "__main__":
                     case 1:
                         # Plot Polygon ...
                         ax.add_geometries(
-                            relevantPolys,
+                            relevantPolysClipped,
                             cartopy.crs.PlateCarree(),
                             edgecolor = f"C{iGshhgRes:d}",
                             facecolor = "none",
                             linewidth = 1.0,
                         )
+
+                        # Check that it is the correct GSHHG resolution ...
+                        if gshhgRes == "c":
+                            # Calculate the tip of the spoke ...
+                            farLon, farLat, _ = pyguymer3.geo.calc_loc_from_loc_and_bearing_and_dist(
+                                midLon,
+                                midLat,
+                                315.0,
+                                float(1000 * maxDist),
+                                  eps = args.eps,
+                                nIter = args.nIter,
+                            )                                                   # [°], [°], [°]
+
+                            # Calculate the spoke ...
+                            spoke = pyguymer3.geo.great_circle(
+                                midLon,
+                                midLat,
+                                farLon,
+                                farLat,
+                                   debug = args.debug,
+                                     eps = args.eps,
+                                 maxdist = args.fillFact * float(1000 * maxDist),
+                                   nIter = args.nIter,
+                                  npoint = None,
+                                ramLimit = args.ramLimit,
+                            )
+                            del farLon, farLat
+
+                            # Calculate the intersection of the spoke with the
+                            # exterior of the relevant Polygon ...
+                            annPnt = relevantPolys[0].exterior.intersection(spoke)
+                            del spoke
+
+                            # Check that the annotation is inside the
+                            # field-of-view ...
+                            if not annPnt.is_empty:
+                                # Annotate the exterior of the relevant Polygon ...
+                                pyguymer3.geo.add_annotation(
+                                    ax,
+                                    annPnt.x,
+                                    annPnt.y,
+                                    f"{dist:d} km",
+                                             arrowprops = None,
+                                                   bbox = {
+                                        "edgecolor" : "black",
+                                        "facecolor" : "white",
+                                        "linewidth" : 1.0,
+                                    },
+                                                  color = "black",
+                                                  debug = args.debug,
+                                               fontsize = 8,
+                                    horizontalalignment = "center",
+                                                 txtLat = None,
+                                                 txtLon = None,
+                                             txtOffsetX = None,
+                                             txtOffsetY = None,
+                                      verticalalignment = "center",
+                                                 zorder = 3.0 + float(dist) / 250.0,
+                                )
+                            del annPnt
                     case _:
                         raise Exception(f"there are {len(relevantPolys):,d} Polygons which are relevant") from None
-                del relevantPolys
+                del relevantPolys, relevantPolysClipped
             del polys
 
             # Stop looping if done ...
@@ -324,7 +426,7 @@ if __name__ == "__main__":
 
     # Configure figure ...
     fg.suptitle(f"({midLon:.6f}°,{midLat:.6f}°)")
-    fg.tight_layout()
+    fg.tight_layout(rect = (0.0, 0.0, 1.0, 0.98))
 
     # Save figure ...
     fg.savefig("plotNewMethod.png")
@@ -333,7 +435,12 @@ if __name__ == "__main__":
     # Optimize PNG ...
     pyguymer3.image.optimise_image(
         "plotNewMethod.png",
-          debug = args.debug,
-          strip = True,
-        timeout = args.timeout,
+           chunksize = args.chunksize,
+               debug = args.debug,
+        exiftoolPath = args.exiftoolPath,
+        gifsiclePath = args.gifsiclePath,
+        jpegtranPath = args.jpegtranPath,
+         optipngPath = args.optipngPath,
+               strip = True,
+             timeout = args.timeout,
     )
