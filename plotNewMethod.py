@@ -278,7 +278,7 @@ if __name__ == "__main__":
                         print(f"    A centroid is at ({poly.centroid.x:.6f}°,{poly.centroid.y:.6f}°).")
                         relevantPolys.append(poly.intersection(fov))
 
-                # Skip this distance if there aren't any Polygons ...
+                # Check how many Polygons contain the Point ...
                 match len(relevantPolys):
                     case 0:
                         print(f"    There aren't any Polygons which are relevant - stopping looping over distance.")
