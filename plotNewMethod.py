@@ -32,7 +32,7 @@ if __name__ == "__main__":
                          "figure.dpi" : 300,
                      "figure.figsize" : (9.6, 7.2),                             # NOTE: See https://github.com/Guymer/misc/blob/main/README.md#matplotlib-figure-sizes
                           "font.size" : 8,
-                "image.interpolation" : "none",
+                "image.interpolation" : "none",                                 # NOTE: See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
                      "image.resample" : False,
             }
         )
@@ -189,8 +189,8 @@ if __name__ == "__main__":
           10,
            2,
     ]                                                                           # [km]
-    midLat = 61.637344                                                          # [°]
-    midLon = 12.827752                                                          # [°]
+    midLat = 61.637373                                                          # [°]
+    midLon = 12.829132                                                          # [°]
     onlyValid = True
     repair = True
 
@@ -273,6 +273,10 @@ if __name__ == "__main__":
 
     # **************************************************************************
 
+    # Initialize lists ...
+    labels = []
+    lines = []
+
     # Loop over GSHHG resolutions ...
     for iGshhgRes, gshhgRes in enumerate(
         [
@@ -285,8 +289,16 @@ if __name__ == "__main__":
     ):
         print(f"Processing GSHHG resolution \"{gshhgRes}\" ...")
 
-        # Create short-hand ...
+        # Create short-hand and append value to list ...
         dName1 = f"newOutput/gshhgRes={gshhgRes}"
+        labels.append(f"gshhgRes={gshhgRes}")
+        lines.append(
+            matplotlib.lines.Line2D(
+                [],
+                [],
+                color = f"C{iGshhgRes:d}",
+            )
+        )
 
         # Loop over distances ...
         for dist in range(50, 250 + 2, 2):
@@ -422,6 +434,11 @@ if __name__ == "__main__":
 
     # Configure axis ...
     for ax, maxDist in zip(axs, maxDists, strict = True):
+        ax.legend(
+            lines,
+            labels,
+            loc = "lower left",
+        )
         ax.set_title(f"{maxDist:d} km")
 
     # Configure figure ...
