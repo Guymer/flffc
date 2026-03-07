@@ -31,7 +31,7 @@ if __name__ == "__main__":
                          "figure.dpi" : 300,
                      "figure.figsize" : (9.6, 7.2),                             # NOTE: See https://github.com/Guymer/misc/blob/main/README.md#matplotlib-figure-sizes
                           "font.size" : 8,
-                "image.interpolation" : "none",
+                "image.interpolation" : "none",                                 # NOTE: See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
                      "image.resample" : False,
             }
         )
@@ -270,10 +270,13 @@ if __name__ == "__main__":
                 )
 
         # Plot lists ...
+        # NOTE: As of 1/Mar/2026, the default "zorder" of both "scatter()" and
+        #       "fill_between()" is 1.
         ax.scatter(
             areas,
             lengths,
-            label = f"gshhgRes={gshhgRes}",
+             label = f"gshhgRes={gshhgRes}",
+            zorder = 1,
         )
 
         # **********************************************************************
@@ -287,6 +290,8 @@ if __name__ == "__main__":
         print(f"  Therefore, you can only buffer every {minFill / args.fillFact:,.1f} metres.")
 
     # Shade impossible region ...
+    # NOTE: As of 1/Mar/2026, the default "zorder" of both "scatter()" and
+    #       "fill_between()" is 1.
     a = numpy.pow(
         10,
         numpy.linspace(
@@ -304,6 +309,7 @@ if __name__ == "__main__":
         edgecolor = "none",
         facecolor = "red",
             label = "impossible",
+           zorder = 0.9,
     )
 
     # Configure axis ...
