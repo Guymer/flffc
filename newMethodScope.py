@@ -269,6 +269,13 @@ if __name__ == "__main__":
                        sort_keys = True,
                 )
 
+        # Print bad Polygons ...
+        for a, l in zip(areas, lengths):
+            r = numpy.sqrt(a / numpy.pi)
+            c = 2.0 * numpy.pi * r
+            if l < c:
+                print(f"WARNING: gshhgRes={gshhgRes}, a={a:d}, l={l:d} has a length less than it should (the area has probably been over-calculated).")
+
         # Plot lists ...
         # NOTE: As of 1/Mar/2026, the default "zorder" of both "scatter()" and
         #       "fill_between()" is 1.
@@ -300,7 +307,8 @@ if __name__ == "__main__":
             num = 100,
         ),
     )                                                                           # [m2]
-    c = 2.0 * numpy.pi * numpy.sqrt(a / numpy.pi)                               # [m]
+    r = numpy.sqrt(a / numpy.pi)                                                # [m]
+    c = 2.0 * numpy.pi * r                                                      # [m]
     numpy.place(c, a >= pyguymer3.SURFACE_AREA_OF_EARTH, maxLength)             # [m]
     ax.fill_between(
         a,
@@ -310,6 +318,26 @@ if __name__ == "__main__":
         facecolor = "red",
             label = "impossible",
            zorder = 0.9,
+    )
+
+    # Label bad point ...
+    ax.annotate(
+        "See \"bugs/another-voronoi-diagram-bug.py\"\nin PyGuymer3 repository. There is a bug in\n\"shapely.ops.voronoi_diagram()\".",
+        (791142, 2623),
+                 arrowprops = {
+            "edgecolor" : "black",
+            "facecolor" : "white",
+            "linewidth" : 1.0,
+        },
+                       bbox = {
+            "edgecolor" : "black",
+            "facecolor" : "white",
+            "linewidth" : 1.0,
+        },
+                      color = "black",
+        horizontalalignment = "center",
+          verticalalignment = "center",
+                     xytext = (1.0e9, 1.0e3),
     )
 
     # Configure axis ...
