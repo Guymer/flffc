@@ -17,3 +17,6 @@ cProfile.log
 mypy.log
 pylint.log
 shellcheck.log
+
+# Hide large datasets ...
+newOutput/gshhgRes=?
