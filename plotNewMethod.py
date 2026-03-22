@@ -40,6 +40,10 @@ if __name__ == "__main__":
     except:
         raise Exception("\"matplotlib\" is not installed; run \"pip install --user matplotlib\"") from None
     try:
+        import numpy
+    except:
+        raise Exception("\"numpy\" is not installed; run \"pip install --user numpy\"") from None
+    try:
         import shapely
         import shapely.wkb
     except:
@@ -417,12 +421,52 @@ if __name__ == "__main__":
             if done:
                 break
 
+    # Plot hike ...
+    coords = numpy.loadtxt(
+        "hike.csv",
+        delimiter = ",",
+         skiprows = 1,
+           unpack = False,
+    )                                                                           # [°]
+    for iax, ax in enumerate(axs):
+        artists = ax.plot(
+            coords[:, 0],
+            coords[:, 1],
+                color = "red",
+            transform = cartopy.crs.PlateCarree(),
+               zorder = 2.5,
+        )
+        if iax == 0:
+            labels.append("Hike")
+            lines.append(artists[0])
+
+    # Plot photos ...
+    coords = numpy.loadtxt(
+        "photos.csv",
+        delimiter = ",",
+         skiprows = 1,
+           unpack = False,
+    )                                                                           # [°]
+    for iax, ax in enumerate(axs):
+        artist = ax.scatter(
+            coords[:, 0],
+            coords[:, 1],
+            edgecolor = "red",
+            facecolor = "none",
+               marker = "*",
+            transform = cartopy.crs.Geodetic(),
+               zorder = 2.5,
+        )
+        if iax == 0:
+            labels.append("Photos")
+            lines.append(artist)
+
     # Plot the starting location ...
     # NOTE: As of 5/Dec/2023, the default "zorder" of the coastlines is 1.5, the
     #       default "zorder" of the gridlines is 2.0 and the default "zorder" of
     #       the scattered points is 1.0.
-    for ax in axs:
-        ax.scatter(
+    for iax, ax in enumerate(axs):
+        artist = ax.scatter(
             [midLon],
             [midLat],
             edgecolor = "black",
@@ -431,6 +475,9 @@ if __name__ == "__main__":
             transform = cartopy.crs.Geodetic(),
                zorder = 5.0,
         )
+        if iax == 0:
+            labels.append("Location Furthest From Coast")
+            lines.append(artist)
 
     # Configure axis ...
     for ax, maxDist in zip(axs, maxDists, strict = True):
@@ -439,7 +486,7 @@ if __name__ == "__main__":
             labels,
             loc = "lower left",
         )
-        ax.set_title(f"{maxDist:d} km")
+        ax.set_title(f"± {maxDist:d} km")
 
     # Configure figure ...
     fg.suptitle(f"({midLon:.6f}°,{midLat:.6f}°)")
