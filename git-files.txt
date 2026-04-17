@@ -1,0 +1,22 @@
+.editorconfig
+.github/FUNDING.yml
+.github/workflows/mypy.yaml
+.github/workflows/pylint.yaml
+.gitignore
+.mypy.ini
+.pylint.ini
+.shellcheckrc
+flffc/__init__.py
+flffc/run.py
+hike.csv
+LICENCE.txt
+newMethod.py
+newMethodScope.png
+newMethodScope.py
+output/United Kingdom.png
+photos.csv
+plotNewMethod.png
+plotNewMethod.py
+README.md
+requirements.txt
+toRun.sh
