@@ -8,6 +8,7 @@
 .shellcheckrc
 flffc/__init__.py
 flffc/run.py
+git-files.txt
 hike.csv
 LICENCE.txt
 newMethod.py
