@@ -26,6 +26,7 @@ The last line of the output from FLFFC will tell you how far you can (roughly) g
 FLFFC requires the following Python modules to be installed and available in your `PYTHONPATH`.
 
 * [cartopy](https://pypi.org/project/Cartopy/)
+* [geojson](https://pypi.org/project/geojson/)
 * [matplotlib](https://pypi.org/project/matplotlib/)
 * [numpy](https://pypi.org/project/numpy/)
 * [pyguymer3](https://github.com/Guymer/PyGuymer3)
