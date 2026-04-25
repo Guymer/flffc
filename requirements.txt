@@ -2,6 +2,7 @@
 # "check_READMEs.py" script from "https://github.com/Guymer/misc".
 
 cartopy > 0.25.0
+geojson
 matplotlib >= 3.5.0
 meson # Required so that NumPy can use an up-to-date version (not the old
       # version that came with your system) when running "f2py".
