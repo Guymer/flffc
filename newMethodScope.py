@@ -270,7 +270,7 @@ if __name__ == "__main__":
                 )
 
         # Print bad Polygons ...
-        for a, l in zip(areas, lengths):
+        for a, l in zip(areas, lengths, strict = True):
             r = numpy.sqrt(a / numpy.pi)
             c = 2.0 * numpy.pi * r
             if l < c:
