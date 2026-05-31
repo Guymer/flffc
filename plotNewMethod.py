@@ -340,7 +340,7 @@ if __name__ == "__main__":
                 # Check how many Polygons contain the Point ...
                 match len(relevantPolys):
                     case 0:
-                        print(f"    There aren't any Polygons which are relevant - stopping looping over distance.")
+                        print("    There aren't any Polygons which are relevant - stopping looping over distance.")
 
                         # Set flag ...
                         done = True
