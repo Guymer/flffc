@@ -1,7 +1,6 @@
 .editorconfig
 .github/FUNDING.yml
 .github/workflows/mypy.yaml
-.github/workflows/pylint.yaml
 .gitignore
 .mypy.ini
 .pylint.ini
