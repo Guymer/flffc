@@ -166,7 +166,7 @@ if __name__ == "__main__":
         "--tile-scale",
         default = 1,
            dest = "tileScale",
-           help = "scale of the tiles",
+           help = "the scale of the tiles",
            type = int,
     )
     parser.add_argument(
