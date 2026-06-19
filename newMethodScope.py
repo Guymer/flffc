@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Use the proper idiom in the main module ...
-# NOTE: See https://docs.python.org/3.12/library/multiprocessing.html#the-spawn-and-forkserver-start-methods
+# NOTE: See https://docs.python.org/3.13/library/multiprocessing.html#the-spawn-and-forkserver-start-methods
 if __name__ == "__main__":
     # Import standard modules ...
     import argparse
@@ -192,9 +192,9 @@ if __name__ == "__main__":
             print("  Loading JSONs ...")
 
             # Load lists ...
-            with open(jName1, "rt", encoding = "utf-8") as fObj:
+            with open(jName1, mode = "rt", encoding = "utf-8") as fObj:
                 areas = json.load(fObj)                                         # [m2]
-            with open(jName2, "rt", encoding = "utf-8") as fObj:
+            with open(jName2, mode = "rt", encoding = "utf-8") as fObj:
                 lengths = json.load(fObj)                                       # [m]
 
             # Check data ...
@@ -252,7 +252,7 @@ if __name__ == "__main__":
             print("  Saving JSONs ...")
 
             # Save lists ...
-            with open(jName1, "wt", encoding = "utf-8") as fObj:
+            with open(jName1, mode = "wt", encoding = "utf-8") as fObj:
                 json.dump(
                     areas,
                     fObj,
@@ -260,7 +260,7 @@ if __name__ == "__main__":
                           indent = 4,
                        sort_keys = True,
                 )
-            with open(jName2, "wt", encoding = "utf-8") as fObj:
+            with open(jName2, mode = "wt", encoding = "utf-8") as fObj:
                 json.dump(
                     lengths,
                     fObj,

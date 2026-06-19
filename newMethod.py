@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Use the proper idiom in the main module ...
-# NOTE: See https://docs.python.org/3.12/library/multiprocessing.html#the-spawn-and-forkserver-start-methods
+# NOTE: See https://docs.python.org/3.13/library/multiprocessing.html#the-spawn-and-forkserver-start-methods
 if __name__ == "__main__":
     # Import standard modules ...
     import argparse
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
     # Save MultiPolygon ...
     if not os.path.exists(f"{dName1}/coastline.geojson"):
-        with open(f"{dName1}/coastline.geojson", "wt", encoding = "utf-8") as fObj:
+        with open(f"{dName1}/coastline.geojson", mode = "wt", encoding = "utf-8") as fObj:
             geojson.dump(
                 multiPolys,
                 fObj,
@@ -314,7 +314,7 @@ if __name__ == "__main__":
                 gzObj.write(shapely.wkb.dumps(multiHoles))
 
             # Save MultiPolygon ...
-            with open(gName, "wt", encoding = "utf-8") as fObj:
+            with open(gName, mode = "wt", encoding = "utf-8") as fObj:
                 geojson.dump(
                     multiHoles,
                     fObj,
