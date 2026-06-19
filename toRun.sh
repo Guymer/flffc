@@ -9,8 +9,8 @@ source "${BASH_ENV}" || exit 1
 # programs are anything that does not appear on the following two lists:
 #   * https://pubs.opengroup.org/onlinepubs/9699919799/idx/utilities.html
 #   * https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html
-if ! type python3.12 &> /dev/null; then
-    echo "ERROR: \"python3.12\" is not installed." >&2
+if ! type python3.13 &> /dev/null; then
+    echo "ERROR: \"python3.13\" is not installed." >&2
     exit 1
 fi
 
@@ -22,7 +22,7 @@ simpFactor=0.0004
 timeout=600.0
 
 # Run Python script ...
-python3.12 newMethodScope.py                                                    \
+python3.13 newMethodScope.py                                                    \
     --fill-factor "${fillFactor}"                                               \
     --nAng "${nAng}"                                                            \
     --RAM-limit ${ramLimit}
@@ -30,7 +30,7 @@ python3.12 newMethodScope.py                                                    
 # Loop over GSHHG resolutions ...
 for gshhgRes in "c" "l" "i" "h" "f"; do
     # Run Python script ...
-    python3.12 newMethod.py                                                     \
+    python3.13 newMethod.py                                                     \
         --fill-factor "${fillFactor}"                                           \
         --GSHHG-resolution "${gshhgRes}"                                        \
         --nAng "${nAng}"                                                        \
@@ -39,7 +39,7 @@ for gshhgRes in "c" "l" "i" "h" "f"; do
 done
 
 # Run Python script ...
-python3.12 plotNewMethod.py                                                     \
+python3.13 plotNewMethod.py                                                     \
     --fill-factor "${fillFactor}"                                               \
     --nAng "${nAng}"                                                            \
     --RAM-limit "${ramLimit}"                                                   \
