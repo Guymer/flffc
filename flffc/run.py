@@ -165,7 +165,6 @@ def run(
                        nIter = nIter,
                    onlyValid = onlyValid,
                       repair = repair,
-            satellite_height = False,
         )
 
         # Configure axis ...
