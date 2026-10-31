@@ -5,7 +5,6 @@
 if __name__ == "__main__":
     # Import standard modules ...
     import argparse
-    import copy
     import json
     import os
     import pathlib
@@ -42,11 +41,6 @@ if __name__ == "__main__":
         import numpy
     except:
         raise Exception("\"numpy\" is not installed; run \"pip install --user numpy\"") from None
-    try:
-        import shapely
-        import shapely.geometry
-    except:
-        raise Exception("\"shapely\" is not installed; run \"pip install --user Shapely\"") from None
 
     # Import my modules ...
     try:
