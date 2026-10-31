@@ -9,8 +9,6 @@ if __name__ == "__main__":
     import os
     import pathlib
     import shutil
-    import subprocess
-    import sysconfig
 
     # Import special modules ...
     try:
@@ -335,7 +333,7 @@ if __name__ == "__main__":
                     if poly.contains(pnt):
                         print(f"    A centroid is at ({poly.centroid.x:.6f}°,{poly.centroid.y:.6f}°).")
                         relevantPolys.append(poly)
-                        relevantPolysClipped.append(poly.intersection(fov))
+                        relevantPolysClipped.append(shapely.geometry.polygon.orient(poly.intersection(fov)))
 
                 # Check how many Polygons contain the Point ...
                 match len(relevantPolys):
